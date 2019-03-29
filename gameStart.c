@@ -19,8 +19,9 @@ unsigned int n = 0; // Keeps track of what part of M we are on.
 
 
 int gameStart(void) {
-    srand(ADC10MEM);            // Generate an initial random seed based on temperature sensor
-//    disable_temperature_sensor();
+//    srand(ADC10MEM);            // Generate an initial random seed based on temperature sensor
+    srand(640); // Placeholder for testing
+    // disable_temperature_sensor();
 
     while (n < sizeof(gameSequence)/sizeof(int)) { // While the player has not reached the game end
         if (n == M)
@@ -29,9 +30,9 @@ int gameStart(void) {
         }
         else
         {
-        nextLED = rand(); // Generate the next LED in our sequence
-        gameSequence[n] = nextLED; // Add the new generated LED to the sequence
-        playSequence(*gameSequence, n); // Play the current sequence partition (including the newly generated LED)
+            nextLED = rand(); // Generate the next LED in our sequence
+            gameSequence[n] = nextLED; // Add the new generated LED to the sequence
+            playSequence(*gameSequence, n); // Play the current sequence partition (including the newly generated LED)
         }
 
         // TODO: start the watchdog/timer module countdown

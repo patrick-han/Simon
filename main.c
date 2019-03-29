@@ -21,12 +21,14 @@ int startSequence[] = {}; // TODO: Program this sequence
 
 int main(void)
 {
-    setup_temperature_sensor(); // Setup temperature sensor
+//    setup_temperature_sensor(); // Setup temperature sensor
+    timer_setup();
+    setup_buzzer();
     __bis_SR_register(GIE);                   // Enable general interrupts
 
     while(1)
     {
-    __bis_SR_register(LPM0);
+//    __bis_SR_register(LPM0);
     switch (state)
         {
             case startUp:
@@ -45,23 +47,6 @@ int main(void)
                 break;
         }
     }
-
-
-    // TODO: Watchdog timer setup (for waiting for the player's button press each turn) or TIMER module?
-//	setup_wdt();
-
-
-	// TODO: Temperature sensor setup + running stuff
-//	setup_temperature_sensor();
-
-
-//	__bis_SR_register(GIE);                   // Enable general interrupts
-
-
-//	srand(100); // TODO: Placeholder, should read from ADC10MEM instead (temp sensor)
-
-	// TODO: LED startup sequence stuff
-//	return 0;
 }
 
 
@@ -77,7 +62,7 @@ void __attribute__ ((interrupt(ADC10_VECTOR))) ADC10_ISR (void)
 #error Compiler not supported!
 #endif
 {
-    __bic_SR_register_on_exit(LPM3_bits); // Exit LPM3 after ISR completes
+    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
 }
 
 
@@ -92,6 +77,6 @@ void __attribute__ ((interrupt(WDT_VECTOR))) watchdog_timer (void)
 #error Compiler not supported!
 #endif
 {
-    __bic_SR_register_on_exit(LPM3_bits); // Exit LPM1 after ISR completes
+    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
 }
 
