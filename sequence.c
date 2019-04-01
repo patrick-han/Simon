@@ -8,13 +8,14 @@
 #include <sequence.h>
 #include <msp430.h>
 
-// Sound frequencies for each LED
+// Sound frequencies for each LED, running on SMCLK = 1 MHz
+// --> ClockSpeed (Hz) / Desired Frequency (Hz)
 // TODO!!!!!!!!!
-#define LED_0 1//
-#define LED_1 1//
-#define LED_2 1//
-#define LED_3 1//
-#define note_len 1//
+#define LED_0 2551 // G_4
+#define LED_1 2273 // A_4
+#define LED_2 1911 // C_5
+#define LED_3 1703 // D_5
+#define note_len 500000 // How long to play each note (0.5 seconds)
 
 
 // TODO: define these
@@ -104,7 +105,7 @@ void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/b
         }
         sendEndFrame();
     }
-    TA1CCR1 = TA1CCR0/2; // Maximize volume & minimize distortion with 50% duty cycle
+    TA1CCR1 = TA1CCR0 >> 2; // Maximize volume & minimize distortion with 50% duty cycle
 }
 
 void playSequence(int arr[], int n) {  // Accepts the array and size of the array to be played (allows us to play partition) (n includes 0 index, so may need to subtract 1)

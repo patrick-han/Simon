@@ -12,7 +12,7 @@
 
 unsigned int state = startUp;
 
-unsigned int playerCanPress = 0; // Flag that indicates whether player input is allowed/valid (i.e. only during the valid 1-2 sec time window)
+//unsigned int playerCanPress = 0; // Flag that indicates whether player input is allowed/valid (i.e. only during the valid 1-2 sec time window)
 
 int gameOverWin[] = {}; // TODO: Program this sequence
 int gameOverLose[] = {}; // TODO: Program this sequence
