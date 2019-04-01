@@ -4,7 +4,7 @@
 #include <setup.h>
 #include <gameStart.h>
 
-// Flags
+// Flags/States
 #define startUp 1
 #define playGame 2
 #define gameWon 3
@@ -23,7 +23,7 @@ int main(void)
 {
 //    setup_temperature_sensor(); // Setup temperature sensor
     timer_setup();
-    setup_buzzer();
+    buzzer_setup();
     __bis_SR_register(GIE);                   // Enable general interrupts
 
     while(1)
@@ -32,17 +32,17 @@ int main(void)
     switch (state)
         {
             case startUp:
-                playSequence(*startSequence, sizeof(gameOverWin)/sizeof(int) - 1);
+                playSequence(startSequence, sizeof(gameOverWin)/sizeof(int) - 1);
                 break;
             case playGame:
                 gameStart();
                 break;
             case gameWon:
-                playSequence(*gameOverWin, sizeof(gameOverWin)/sizeof(int) - 1);
+                playSequence(gameOverWin, sizeof(gameOverWin)/sizeof(int) - 1);
                 state = startUp;
                 break;
             case gameLost:
-                playSequence(*gameOverLose, sizeof(gameOverLose)/sizeof(int) - 1);
+                playSequence(gameOverLose, sizeof(gameOverLose)/sizeof(int) - 1);
                 state = startUp;
                 break;
         }

@@ -5,6 +5,7 @@
  *      Author: patrickhan
  *      Description: Contains functions for setting up and disabling MSP430 modules
  */
+#include <setup.h>
 #include <msp430.h>
 
 void button_setup(void) {
@@ -26,7 +27,7 @@ void button_setup(void) {
     P2IFG &= ~0x1C;    // Clearing the interrupt status of P2.0, 2.2, 2.3, and 2.4
 }
 
-void setup_buzzer(void) {
+void buzzer_setup(void) {
     P2DIR |= BIT1;                                // Make P2.1 an output pin (Piezo)
     P2SEL |= BIT1;                                // Select P2.1 as our PWM output
     P2SEL2 &= ~BIT1;
@@ -51,7 +52,7 @@ void timer_setup(void) {
     TA1CCR0 = 0;
 }
 
-void setup_SPI(void) {
+void SPI_setup(void) {
     UCA0CTL1 |= UCSWRST;                          // Enable SPI
 
     UCA0CTL0 |= UCCKPH + UCSYNC + UCMST + UCMSB;  // Clock phase sync mode, Synchronous  (SPI), Master Mode on, MSB first direction for the RX/TX shifter register
@@ -63,13 +64,13 @@ void setup_SPI(void) {
 }
 
 void setup_temperature_sensor(void) {
-    ADC10CTL0 &= ~ENC;                            // Disable ENC (Enable-Conversion) bit by default
+    ADC10CTL0 &= ~ENC;                                                           // Disable ENC (Enable-Conversion) bit by default
     // TODO: Verify these ports/clock selections are correct!!!
     ADC10AE0 |= BIT0;
     ADC10CTL0 |= REFON + SREF_1 + REF2_5V + ADC10SHT_3 + ADC10ON + ADC10IE;      // Reference on, select ref voltage, Sample and hold time, ADC10 ON, enable ADC interrupt enable,
-    ADC10CTL1 |= ADC10DIV_0 + ADC10SSEL_1 + INCH_0;  // Divide by 1, select ACLK, Select temp sensor as channel
+    ADC10CTL1 |= ADC10DIV_0 + ADC10SSEL_3 + INCH_0;                              // Divide by 1, select SMCLK, Select temp sensor as channel
 
-    ADC10CTL0 |= ENC + ADC10SC;                 // start conversion
+    ADC10CTL0 |= ENC + ADC10SC;                                                  // Start conversion
 }
 
 void disable_temperature_sensor(void) {

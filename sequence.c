@@ -5,29 +5,36 @@
  *      Author: patrickhan
  *      Description: Contains functions for playing array sequences
  */
+#include <sequence.h>
 #include <msp430.h>
-
-// TODO: define these
-static int frame[] =    // frame contains LED colors corresponding to different buttons
-{     //B     G     R
-0x00, 0x00, 0x00, 0x00, // Start Frame
-0xFF, 0x00, 0x00, 0x00, // LED 1
-0xFF, 0x00, 0x00, 0x00,
-0xFF, 0x00, 0x00, 0x00,
-0xFF, 0x00, 0x00, 0x00,
-0xFF, 0xFF, 0xFF, 0xFF  // End frame
-};
-
 
 // Sound frequencies for each LED
 // TODO!!!!!!!!!
-#define LED_0 //
-#define LED_1 //
-#define LED_2 //
-#define LED_3 //
-#define note_len //
+#define LED_0 1//
+#define LED_1 1//
+#define LED_2 1//
+#define LED_3 1//
+#define note_len 1//
 
-unsigned int i; // Note sequence for-loop iterator
+
+// TODO: define these
+//static int frame[] =    // frame contains LED colors corresponding to different buttons
+//{     //B     G     R
+//0x00, 0x00, 0x00, 0x00, // Start Frame
+//0xFF, 0x00, 0x00, 0x00, // LED 1
+//0xFF, 0x00, 0x00, 0x00,
+//0xFF, 0x00, 0x00, 0x00,
+//0xFF, 0x00, 0x00, 0x00,
+//0xFF, 0xFF, 0xFF, 0xFF  // End frame
+//};
+
+//                            B     G     R
+int LED_0_frame[4] = {0xFF, 0x00, 0x00, 0xFF};
+int LED_1_frame[4] = {0xFF, 0x00, 0xFF, 0x00};
+int LED_2_frame[4] = {0xFF, 0xFF, 0x00, 0x00};
+int LED_3_frame[4] = {0xFF, 0x42, 0xF1, 0xF4}; // Yellow
+
+unsigned int i; // for loop iterator
 
 /*
  * LED's are daisy chained: 1 -> 2 -> 3 -> 4 (corresponding to respective buttons)
@@ -37,6 +44,17 @@ unsigned int i; // Note sequence for-loop iterator
  * CLK line: P1.4 (UCA0CLK)
  */
 
+void sendStartFrame(void) { // Sends start frame bits for LED
+    for (i = 0; i <= 3; i++) {
+        UCA0TXBUF = 0x00;
+    }
+}
+
+void sendEndFrame(void) { // Sends end frame bits for LED
+    for (i = 0; i <= 3; i++) {
+        UCA0TXBUF = 0xFF;
+    }
+}
 
 void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/buzzer value
     // TODO: /LED lightup stuff etc.
@@ -44,25 +62,52 @@ void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/b
 
 //    UCA0TXBUF = frame[i];                     // Write frame elements to buffer
     if (LED_n == 0) {
+        // Buzzer Code
         TA1CCR0 = LED_0; // TA1 controls the frequency of our note
         P2OUT |= BIT1;   // Start outputting sound from P2.1 (Piezo)
+
+        // LED Code
+        //TODO idk if this is a good implementation
+        sendStartFrame();
+        for (i = 0; i <= 3; i++) { // Send Color Frame
+            UCA0TXBUF = LED_0_frame[i];
+        }
+        sendEndFrame();
     }
     else if (LED_n == 1) {
         TA1CCR0 = LED_1;
         P2OUT |= BIT1;
+
+        sendStartFrame();
+        for (i = 0; i <= 3; i++) { // Send Color Frame
+            UCA0TXBUF = LED_1_frame[i];
+        }
+        sendEndFrame();
     }
     else if (LED_n == 2) {
         TA1CCR0 = LED_2;
         P2OUT |= BIT1;
+
+        sendStartFrame();
+        for (i = 0; i <= 3; i++) { // Send Color Frame
+            UCA0TXBUF = LED_2_frame[i];
+        }
+        sendEndFrame();
     }
     else if (LED_n == 3) {
         TA1CCR0 = LED_3;
         P2OUT |= BIT1;
+
+        sendStartFrame();
+        for (i = 0; i <= 3; i++) { // Send Color Frame
+            UCA0TXBUF = LED_3_frame[i];
+        }
+        sendEndFrame();
     }
     TA1CCR1 = TA1CCR0/2; // Maximize volume & minimize distortion with 50% duty cycle
 }
 
-void playSequence(int *arr, int n) {  // Accepts the array and size of the array to be played (allows us to play partition) (n includes 0 index, so may need to subtract 1)
+void playSequence(int arr[], int n) {  // Accepts the array and size of the array to be played (allows us to play partition) (n includes 0 index, so may need to subtract 1)
     for (i = 0; i <= n; i++) {
         TA0CCTL1 &= ~CCIE;            // Disable interrupts for TA0
         IE2 &= ~UCA0TXIE;             // Disable transmit interrupt (LEDs)
@@ -98,9 +143,9 @@ void playSequence(int *arr, int n) {  // Accepts the array and size of the array
 // TA0 interrupt service routine, used for controlling the duration of a note
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=TIMER0_A1_VECTOR
-__interrupt void Timer_A (void)
+__interrupt void Timer_A0 (void)
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer_A (void)
+void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer_A0 (void)
 #else
 #error Compiler not supported!
 #endif
@@ -111,9 +156,9 @@ void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer_A (void)
 // TA1 interrupt service routine, used for controlling the frequency of a note
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=TIMER1_A1_VECTOR
-__interrupt void Timer_A (void)
+__interrupt void Timer_A1 (void)
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) Timer_A (void)
+void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) Timer_A1 (void)
 #else
 #error Compiler not supported!
 #endif

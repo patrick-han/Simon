@@ -14,7 +14,7 @@ void buzzer_setup(void); // Setup buzzer pins
 
 void timer_setup(void); // Setup timers
 
-void setup_SPI(void); // Setup SPI communication
+void SPI_setup(void); // Setup SPI communication
 
 void setup_temperature_sensor(void); // Setup the ADC10 to take input from the temperature sensor
 void disable_temperature_sensor(void);
