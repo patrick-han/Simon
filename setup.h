@@ -19,8 +19,8 @@ void SPI_setup(void); // Setup SPI communication
 void setup_temperature_sensor(void); // Setup the ADC10 to take input from the temperature sensor
 void disable_temperature_sensor(void);
 
-void setup_wdt(void); // Setup the Watchdog Timer
-void disable_wdt(void); // Disable Watchdog Timer
+void wdt_setup(void); // Setup the Watchdog Timer
+void wdt_disable(void); // Disable Watchdog Timer
 
 
 

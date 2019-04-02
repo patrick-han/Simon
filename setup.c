@@ -42,25 +42,31 @@ void timer_setup(void) {
     // TA0
     TA0CCTL1 &= ~CCIE;                            // Disable interrupts for TA0
     TA0CCTL1 |= OUTMOD_7;                         // Governs the high/low behavior related to CCR0, CCR1
-    TA0CTL = TASSEL_2 + MC_1;                     // Select SMCLK as source clock, up count mode
+    TA0CTL = TASSEL_2 + MC_1 + ID_0;                     // Select SMCLK as source clock, up count mode
     TA0CCR0 = 0;
 
     // TA1
     TA1CCTL1 &= ~CCIE;                            // Disable interrupts for TA1
     TA1CCTL1 |= OUTMOD_7;                         // Governs the high/low behavior related to CCR0, CCR1
-    TA1CTL = TASSEL_2 + MC_1;                     // Select SMCLK as source clock, up count mode
+    TA1CTL = TASSEL_2 + MC_1 + ID_0;                     // Select SMCLK as source clock, up count mode
     TA1CCR0 = 0;
 }
 
 void SPI_setup(void) {
     UCA0CTL1 |= UCSWRST;                          // Enable SPI
 
+    P1SEL  |= BIT2;                               // Just setup for the pins (1.2 is the SIMO data line)
+    P1SEL2 |= BIT2;
+
+    P1SEL  |= BIT4;                               // Just setup for the pins (1.4 is the USCI clock)
+    P1SEL2 |= BIT4;
+
     UCA0CTL0 |= UCCKPH + UCSYNC + UCMST + UCMSB;  // Clock phase sync mode, Synchronous  (SPI), Master Mode on, MSB first direction for the RX/TX shifter register
     UCA0CTL1 |= UCSSEL_2;                         // Select SMCLK as source
 
     UCA0BR1 |= 0;
     UCA0BR0 |= 0x02;                              // Baud rate settings, clock divide by 2
-    UCA0CTL1 &= ~UCSWRST;                         // Enable SPI
+    UCA0CTL1 &= ~UCSWRST;
 }
 
 void setup_temperature_sensor(void) {
@@ -78,13 +84,16 @@ void disable_temperature_sensor(void) {
 }
 
 
-void setup_wdt(void) {
+void wdt_setup(void) {
 
-    // TODO: obviously need to change this
-    WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
+    // TODO probably need to change this
+    BCSCTL3 |= LFXT1S_2;                        // ACLK = VLO
+    //    WDTCTL = WDT_ADLY_16;                       // WDT 16ms, ACLK
+    WDTCTL = WDT_ADLY_1_9;
+    IE1 &= ~WDTIE;                              // Disable WDT interrupt
 }
 
 
-void disable_wdt(void) {
+void wdt_disable(void) {
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
 }

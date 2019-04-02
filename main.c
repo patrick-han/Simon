@@ -16,7 +16,7 @@ unsigned int state = startUp;
 
 int gameOverWin[] = {}; // TODO: Program this sequence
 int gameOverLose[] = {}; // TODO: Program this sequence
-int startSequence[] = {}; // TODO: Program this sequence
+int startSequence[] = {0,1,2,3,0,1,2,3}; // TODO: Program this sequence
 
 
 int main(void)
@@ -24,6 +24,8 @@ int main(void)
 //    setup_temperature_sensor(); // Setup temperature sensor
     timer_setup();
     buzzer_setup();
+    SPI_setup();
+    wdt_setup();
     __bis_SR_register(GIE);                   // Enable general interrupts
 
     while(1)
@@ -32,7 +34,8 @@ int main(void)
     switch (state)
         {
             case startUp:
-                playSequence(startSequence, sizeof(gameOverWin)/sizeof(int) - 1);
+                playSequence(startSequence, 7);
+//                state = playGame;
                 break;
             case playGame:
                 gameStart();
@@ -64,19 +67,3 @@ void __attribute__ ((interrupt(ADC10_VECTOR))) ADC10_ISR (void)
 {
     __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
 }
-
-
-
-// Watchdog Timer interrupt service routine
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
-#pragma vector=WDT_VECTOR // Treat following code as part of the interrupt vector
-__interrupt void watchdog_timer(void)
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(WDT_VECTOR))) watchdog_timer (void)
-#else
-#error Compiler not supported!
-#endif
-{
-    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
-}
-

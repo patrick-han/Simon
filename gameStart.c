@@ -10,7 +10,7 @@
 #include <sequence.h>
 #include <setup.h>
 
-#define M 5 // The length of our gameSequence, needs to be changed for different sequence sizes/difficulty
+#define M 4// The length of our gameSequence (INDEXED FROM 0), needs to be changed for different sequence sizes/difficulty
 int gameSequence[] = {0, 0, 0, 0, 0}; // length-M pattern (will be affected by the seed)
 
 int nextLED; // Next LED in our gameSequence
@@ -24,14 +24,15 @@ int gameStart(void) {
     srand(640); // Placeholder for testing
     // disable_temperature_sensor();
 
-    while ( n < (sizeof(gameSequence)/sizeof(int)) ) { // While the player has not reached the game end
-        if (n == M) {
-            return 1; // game won!
+    while (n < M) {                         // While the player has not reached the game end
+
+        if (n == M) {                       // If the player has reached the game end
+            return 1;                       // Game as been won!
         }
         else {
-            nextLED = rand(); // Generate the next LED in our sequence
-            gameSequence[n] = nextLED; // Add the new generated LED to the sequence
-            playSequence(gameSequence, n); // Play the current sequence partition (including the newly generated LED)
+            nextLED = rand();               // Generate the next LED in our sequence
+            gameSequence[n] = nextLED;      // Add the new generated LED to the sequence
+            playSequence(gameSequence, n);  // Play the current sequence partition (including the newly generated LED)
         }
 
         // TODO: start the watchdog/timer module countdown
@@ -47,19 +48,25 @@ int gameStart(void) {
 
         n++; // Move on to the next LED in the random sequence
     }
-    return 0;
 }
 
 
 // TODO: This ISR
 
-// Port 1 interrupt service routine
+/* BUTTON LAYOUT */
+/* (P2.4) S4 --------- S3 (P2.3) */
+/*         |            |        */
+/*         |            |        */
+/* (P2.0) S1 --------- S2 (P2.2) */
+
+
+// Port 2 interrupt service routine
 
 //#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-//#pragma vector=PORT1_VECTOR
-//__interrupt void Port_1 (void)
+//#pragma vector=PORT2_VECTOR
+//__interrupt void Port_2 (void)
 //#elif defined(__GNUC__)
-//void __attribute__ ((interrupt(PORT1_VECTOR))) Port_1 (void)
+//void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
 //#else
 //#error Compiler not supported!
 //#endif
@@ -69,14 +76,14 @@ int gameStart(void) {
 //  if (asleep) {
 //    asleep = 0;
 //    P1IE  |= BIT2;
-//    __bic_SR_register_on_exit(LPM4_bits);  // On exit from being "asleep", exit low power mode 4 (Turn on CPU)
+//    __bic_SR_register_on_exit(LPM0_bits);  // On exit from being "asleep", exit low power mode 4 (Turn on CPU)
 //  }
 //  else {
 //    P1OUT &= ~0xC0;  // CLear P1 (LEDs off)
 //    P2OUT &= ~0xFF;  // CLear P2 (LEDs off)
 //    asleep = 1;
 //    P1IE  |= BIT2;
-//    __bis_SR_register_on_exit(LPM4_bits + GIE); // On exit from being put to "sleep", enter low power mode 4 and re-enable interrupt
+//    __bis_SR_register_on_exit(LPM0_bits + GIE); // On exit from being put to "sleep", enter low power mode 4 and re-enable interrupt
 //  }
 //}
 
