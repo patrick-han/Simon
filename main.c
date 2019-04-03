@@ -16,7 +16,7 @@ unsigned int state = startUp;
 
 int gameOverWin[] = {}; // TODO: Program this sequence
 int gameOverLose[] = {}; // TODO: Program this sequence
-int startSequence[] = {0,1,2,3,0,1,2,3}; // TODO: Program this sequence
+int startSequence[] = {0,1,2,3,0,1,2,3,99}; // TODO: Program this sequence
 
 
 int main(void)
@@ -26,6 +26,7 @@ int main(void)
     buzzer_setup();
     SPI_setup();
     wdt_setup();
+    button_setup();
     __bis_SR_register(GIE);                   // Enable general interrupts
 
     while(1)
@@ -34,8 +35,8 @@ int main(void)
     switch (state)
         {
             case startUp:
-                playSequence(startSequence, 7);
-//                state = playGame;
+                playSequence(startSequence, 8);
+                state = playGame;
                 break;
             case playGame:
                 gameStart();
@@ -55,6 +56,7 @@ int main(void)
 
 
 
+
 // ADC interrupt service routine (For the temp sensor)
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
 #pragma vector=ADC10_VECTOR // Treat following code as part of the interrupt vector
@@ -67,3 +69,10 @@ void __attribute__ ((interrupt(ADC10_VECTOR))) ADC10_ISR (void)
 {
     __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
 }
+
+
+
+
+
+
+

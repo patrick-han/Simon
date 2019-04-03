@@ -12,10 +12,19 @@
 // --> ClockSpeed (Hz) / Desired Frequency (Hz)
 // Timer Capture/Control Register is 16-bits (65535 max value)
 // TODO!!!!!!!!!
-#define LED_0 2551 // G_4
-#define LED_1 2273 // A_4
-#define LED_2 1911 // C_5
-#define LED_3 1703 // D_5
+
+
+//#define LED_0 2551 // G_4
+//#define LED_1 2273 // A_4
+//#define LED_2 1911 // C_5
+//#define LED_3 1703 // D_5
+
+#define LED_0 0
+#define LED_1 0
+#define LED_2 0
+#define LED_3 0
+
+#define LED_99 0   // OFF
 //#define note_len 500000 // How long to play each note (0.5 seconds)
 #define note_len 62500 // ID_3 for the Timer clocks (divide by 8)
 
@@ -58,22 +67,25 @@ unsigned int k; // for loop iterator for main sequence loop
 
 void sendStartFrame(void) { // Sends start frame bits for LED
     for (i = 0; i <= 3; i++) {
-        __bis_SR_register(LPM0_bits + GIE);
-        UCA0TXBUF = 0x00;
+//        __bis_SR_register(LPM0_bits + GIE);
+        while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+            UCA0TXBUF = 0x00;
     }
 }
 
 void sendEndFrame(void) { // Sends end frame bits for LED
     for (i = 0; i <= 3; i++) {
-        __bis_SR_register(LPM0_bits + GIE);
-        UCA0TXBUF = 0xFF;
+//        __bis_SR_register(LPM0_bits + GIE);
+        while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+            UCA0TXBUF = 0xFF;
     }
 }
 
 void sendOffFrame(void) {
     for (i = 0; i <= 3; i++) {
-        __bis_SR_register(LPM0_bits + GIE);
-        UCA0TXBUF = off_frame[i];
+//        __bis_SR_register(LPM0_bits + GIE);
+        while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+            UCA0TXBUF = off_frame[i];
     }
 }
 
@@ -81,8 +93,8 @@ void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/b
     // TODO: /LED lightup stuff etc.
     IE1 |= WDTIE;                                 // Enable WDT interrupt
 
-    IE2 |= UCA0TXIE;                            // Enable transmit interrupt
-    IFG2 &= ~UCA0TXIFG;                         // Clear interrupt status after byte is transmitted
+//    IE2 |= UCA0TXIE;                            // Enable transmit interrupt
+//    IFG2 &= ~UCA0TXIFG;                         // Clear interrupt status before transmitting anything
     if (LED_n == 0) {
         // Buzzer Code
         TA1CCR0 = LED_0; // TA1 controls the frequency of our note
@@ -90,10 +102,13 @@ void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/b
 
         // LED Code
         //TODO idk if this is a good implementation
+
         sendStartFrame();
+//        while(1);
         for (i = 0; i <= 3; i++) { // Send Color Frame
-            __bis_SR_register(LPM0_bits + GIE);
-            UCA0TXBUF = LED_0_frame[i];
+//            __bis_SR_register(LPM0_bits + GIE);
+            while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+                UCA0TXBUF = LED_0_frame[i];
         }
         sendOffFrame(); // Other LEDs are off
         sendOffFrame();
@@ -109,8 +124,9 @@ void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/b
         sendOffFrame();
 
         for (i = 0; i <= 3; i++) { // Send Color Frame
-            __bis_SR_register(LPM0_bits + GIE);
-            UCA0TXBUF = LED_1_frame[i];
+//            __bis_SR_register(LPM0_bits + GIE);
+            while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+                UCA0TXBUF = LED_1_frame[i];
         }
         sendOffFrame();
         sendOffFrame();
@@ -128,8 +144,9 @@ void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/b
 
 
         for (i = 0; i <= 3; i++) { // Send Color Frame
-            __bis_SR_register(LPM0_bits + GIE);
-            UCA0TXBUF = LED_2_frame[i];
+//            __bis_SR_register(LPM0_bits + GIE);
+            while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+                UCA0TXBUF = LED_2_frame[i];
         }
         sendOffFrame();
 
@@ -146,18 +163,39 @@ void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/b
 
 
         for (i = 0; i <= 3; i++) { // Send Color Frame
-            __bis_SR_register(LPM0_bits + GIE);
-            UCA0TXBUF = LED_3_frame[i];
+//            __bis_SR_register(LPM0_bits + GIE);
+            while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+                UCA0TXBUF = LED_3_frame[i];
         }
         sendEndFrame();
     }
+    else if (LED_n == 99) {
+        TA1CCR0 = LED_99;
+        P2OUT |= BIT1;
+        sendStartFrame();
+
+        sendOffFrame();
+        sendOffFrame();
+        sendOffFrame();
+        sendOffFrame();
+
+//        for (i = 0; i <= 3; i++) { // Send Color Frame
+//            __bis_SR_register(LPM0_bits + GIE);
+//            UCA0TXBUF = off_frame[i];
+//        }
+        sendEndFrame();
+    }
     TA1CCR1 = TA1CCR0 >> 2; // Maximize volume & minimize distortion with 50% duty cycle
+
 }
 
 void playSequence(int arr[], int n) {  // Accepts the array and size of the array to be played (allows us to play partition) (n includes 0 index, so may need to subtract 1)
+    P2DIR |= BIT1;                                // Make P2.1 an output pin (Piezo)
+    P2DIR |= BIT5;                                // Make P2.5 an output pin (Piezo)
+
     for (k = 0; k <= n; k++) {
         TA0CCTL1 &= ~CCIE;            // Disable interrupts for TA0
-        IE2 &= ~UCA0TXIE;             // Disable transmit interrupt (LEDs)
+//        IE2 &= ~UCA0TXIE;             // Disable transmit interrupt (LEDs)
 
         playLED(arr[k]);              // Start playing our tone/note
         TA0CCR0 = 0;                  // Set period as 0 (for safety)
@@ -170,8 +208,10 @@ void playSequence(int arr[], int n) {  // Accepts the array and size of the arra
         TA0CCTL1 &= ~CCIE;            // Disable interrupts for TA0
 
         IE1 &= ~WDTIE;                // Disable WDT interrupt
-        IE2 &= ~UCA0TXIE;             // Disable transmit interrupt (LEDs)
+//        IE2 &= ~UCA0TXIE;             // Disable transmit interrupt (LEDs)
     }
+    P2DIR &= ~BIT1;                   // Disable Piezo (making it an input)
+    P2DIR &= ~BIT5;                   // Disable Piezo (making it an input)
 }
 
 
@@ -189,6 +229,7 @@ void playSequence(int arr[], int n) {  // Accepts the array and size of the arra
 // pin out for buzzer = 0 --> stop the buzzer sound
 // CCIE 1 disabled --> disable interrupt again
 
+
 // TA0 interrupt service routine, used for controlling the duration of a note
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=TIMER0_A1_VECTOR
@@ -199,7 +240,9 @@ void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer_A0 (void)
 #error Compiler not supported!
 #endif
 {
-  __bic_SR_register_on_exit(LPM0_bits + GIE);  // On exit from the Timer A0 ISR, take the MSP430 out of low power mode 0, clear general interrupt
+    TA0CCTL1 &= ~CCIE;
+    __bic_SR_register_on_exit(LPM0_bits);
+//    __bic_SR_register_on_exit(LPM0_bits + GIE);  // On exit from the Timer A0 ISR, take the MSP430 out of low power mode 0, clear general interrupt
 }
 
 // TA1 interrupt service routine, used for controlling the frequency of a note
@@ -212,16 +255,19 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) Timer_A1 (void)
 #error Compiler not supported!
 #endif
 {
-  __bic_SR_register_on_exit(LPM0_bits + GIE);  // On exit from the Timer A1 ISR, take the MSP430 out of low power mode 0, clear general interrupt
+    TA1CCTL1 &= ~CCIE;
+    __bic_SR_register_on_exit(LPM0_bits);
+//    __bic_SR_register_on_exit(LPM0_bits + GIE);  // On exit from the Timer A1 ISR, take the MSP430 out of low power mode 0, clear general interrupt
 }
 
-// USCI_A0 Data ISR
-#pragma vector = USCIAB0TX_VECTOR
-__interrupt void USCIA0TX_ISR(void)
-{
-    IFG2 &= ~UCA0TXIFG; // Clear interrupt status after byte is transmitted
-    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM1 after ISR completes
-}
+//// USCI_A0 Data ISR
+//#pragma vector = USCIAB0TX_VECTOR
+//__interrupt void USCIA0TX_ISR(void)
+//{
+//    IFG2 &= ~UCA0TXIFG; // Clear interrupt status after byte is transmitted
+//    // So apparently, clearing LPM within this ISR doesn't work, in fact the WDT is doing the clearing
+////    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM1 after ISR completes
+//}
 
 // Watchdog Timer interrupt service routine
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
@@ -235,7 +281,6 @@ void __attribute__ ((interrupt(WDT_VECTOR))) watchdog_timer (void)
 {
     __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
 }
-
 
 
 

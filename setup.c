@@ -18,13 +18,14 @@ void button_setup(void) {
 
 
     // ------ Setup pins for P1 and P2 as outputs (For the LEDS) and clear them
-    P2DIR &= ~0x1C;                           // Make P2.0, 2.2, 2.3, and 2.4 input pins
-    P2OUT &= ~0x1C;                           // Init P2 pins to 0
+    P2DIR &= ~0x1D;                           // Make P2.0, 2.2, 2.3, and 2.4 input pins
+    P2REN |= 0x1D;
+    P2OUT |= 0x1D;                           // Init P2 pins to 1 (Pull up)
 
     // ------ Enable interrupts
-    P2IE  |= 0x1C;     // Enable interrupt for P2.0, 2.2, 2.3, and 2.4
-    P2IES |= 0x1C;     // Enable edge select for the interrupt (high to low transition)
-    P2IFG &= ~0x1C;    // Clearing the interrupt status of P2.0, 2.2, 2.3, and 2.4
+    P2IE  |= 0x1D;     // Enable interrupt for P2.0, 2.2, 2.3, and 2.4
+    P2IES |= 0x1D;     // Enable edge select for the interrupt (high to low transition)
+    P2IFG &= ~0x1D;    // Clearing the interrupt status of P2.0, 2.2, 2.3, and 2.4
 }
 
 void buzzer_setup(void) {
