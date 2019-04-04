@@ -18,6 +18,9 @@ int gameOverWin[] = {}; // TODO: Program this sequence
 int gameOverLose[] = {}; // TODO: Program this sequence
 int startSequence[] = {0,1,2,3,0,1,2,3,99}; // TODO: Program this sequence
 
+//int startSequence[] = {0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,99,
+//                       0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,99};
+
 
 int main(void)
 {
@@ -35,18 +38,19 @@ int main(void)
     switch (state)
         {
             case startUp:
-                playSequence(startSequence, 8);
+//                playSequence(startSequence, 8);
+                playSequence(startSequence, sizeof(startSequence)/sizeof(int)-1, 0);
                 state = playGame;
                 break;
             case playGame:
                 gameStart();
                 break;
             case gameWon:
-                playSequence(gameOverWin, sizeof(gameOverWin)/sizeof(int) - 1);
+                playSequence(gameOverWin, sizeof(gameOverWin)/sizeof(int) - 1, 0);
                 state = startUp;
                 break;
             case gameLost:
-                playSequence(gameOverLose, sizeof(gameOverLose)/sizeof(int) - 1);
+                playSequence(gameOverLose, sizeof(gameOverLose)/sizeof(int) - 1, 0);
                 state = startUp;
                 break;
         }

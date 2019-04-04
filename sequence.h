@@ -9,7 +9,7 @@
 #define SEQUENCE_H_
 
 void playLED(int LED_n); // Play a specific LED
-void playSequence(int arr[], int n); // Playback our current sequence so far (input is gameSequence)
+void playSequence(int arr[], int n, int press); // Playback our current sequence so far (input is gameSequence)
 
 
 

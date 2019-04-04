@@ -19,8 +19,8 @@ void button_setup(void) {
 
     // ------ Setup pins for P1 and P2 as outputs (For the LEDS) and clear them
     P2DIR &= ~0x1D;                           // Make P2.0, 2.2, 2.3, and 2.4 input pins
-    P2REN |= 0x1D;
-    P2OUT |= 0x1D;                           // Init P2 pins to 1 (Pull up)
+    P2REN |= 0x1D;                            // Pull-up
+    P2OUT |= 0x1D;                            // Init P2 pins to 1 (Pull up)
 
     // ------ Enable interrupts
     P2IE  |= 0x1D;     // Enable interrupt for P2.0, 2.2, 2.3, and 2.4
@@ -43,13 +43,13 @@ void timer_setup(void) {
     // TA0
     TA0CCTL1 &= ~CCIE;                            // Disable interrupts for TA0
     TA0CCTL1 |= OUTMOD_7;                         // Governs the high/low behavior related to CCR0, CCR1
-    TA0CTL = TASSEL_2 + MC_1 + ID_0;                     // Select SMCLK as source clock, up count mode
+    TA0CTL = TASSEL_2 + MC_1;                     // Select SMCLK as source clock, up count mode
     TA0CCR0 = 0;
 
     // TA1
     TA1CCTL1 &= ~CCIE;                            // Disable interrupts for TA1
     TA1CCTL1 |= OUTMOD_7;                         // Governs the high/low behavior related to CCR0, CCR1
-    TA1CTL = TASSEL_2 + MC_1 + ID_0;                     // Select SMCLK as source clock, up count mode
+    TA1CTL = TASSEL_2 + MC_1;                     // Select SMCLK as source clock, up count mode
     TA1CCR0 = 0;
 }
 

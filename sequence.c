@@ -7,6 +7,7 @@
  */
 #include <sequence.h>
 #include <msp430.h>
+#include <global.h>
 
 // Sound frequencies for each LED, running on SMCLK = 1 MHz
 // --> ClockSpeed (Hz) / Desired Frequency (Hz)
@@ -14,15 +15,15 @@
 // TODO!!!!!!!!!
 
 
-//#define LED_0 2551 // G_4
-//#define LED_1 2273 // A_4
-//#define LED_2 1911 // C_5
-//#define LED_3 1703 // D_5
+#define LED_0 2551 // G_4
+#define LED_1 2273 // A_4
+#define LED_2 1911 // C_5
+#define LED_3 1703 // D_5
 
-#define LED_0 0
-#define LED_1 0
-#define LED_2 0
-#define LED_3 0
+//#define LED_0 0
+//#define LED_1 0
+//#define LED_2 0
+//#define LED_3 0
 
 #define LED_99 0   // OFF
 //#define note_len 500000 // How long to play each note (0.5 seconds)
@@ -50,6 +51,9 @@ int off_frame[4] = {0xFF, 0x00, 0x00, 0x00};
 
 unsigned int i; // for loop iterator
 unsigned int k; // for loop iterator for main sequence loop
+unsigned int z;
+
+extern int debouncing;
 
 /*
  * LED's are daisy chained: 1 -> 2 -> 3 -> 4 (corresponding to respective buttons)
@@ -91,7 +95,7 @@ void sendOffFrame(void) {
 
 void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/buzzer value
     // TODO: /LED lightup stuff etc.
-    IE1 |= WDTIE;                                 // Enable WDT interrupt
+//    IE1 |= WDTIE;                                 // Enable WDT interrupt
 
 //    IE2 |= UCA0TXIE;                            // Enable transmit interrupt
 //    IFG2 &= ~UCA0TXIFG;                         // Clear interrupt status before transmitting anything
@@ -171,7 +175,7 @@ void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/b
     }
     else if (LED_n == 99) {
         TA1CCR0 = LED_99;
-        P2OUT |= BIT1;
+        P2OUT &= ~BIT1;
         sendStartFrame();
 
         sendOffFrame();
@@ -179,39 +183,59 @@ void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/b
         sendOffFrame();
         sendOffFrame();
 
-//        for (i = 0; i <= 3; i++) { // Send Color Frame
-//            __bis_SR_register(LPM0_bits + GIE);
-//            UCA0TXBUF = off_frame[i];
-//        }
         sendEndFrame();
     }
     TA1CCR1 = TA1CCR0 >> 2; // Maximize volume & minimize distortion with 50% duty cycle
 
 }
 
-void playSequence(int arr[], int n) {  // Accepts the array and size of the array to be played (allows us to play partition) (n includes 0 index, so may need to subtract 1)
+void playSequence(int arr[], int n, int press) {  // Accepts the array and size of the array to be played (allows us to play partition) (n includes 0 index, so may need to subtract 1)
+                                                  // Third argument 'press' is whether or not the playSequence() call is attributed to a button press or just a sequence
     P2DIR |= BIT1;                                // Make P2.1 an output pin (Piezo)
     P2DIR |= BIT5;                                // Make P2.5 an output pin (Piezo)
 
     for (k = 0; k <= n; k++) {
-        TA0CCTL1 &= ~CCIE;            // Disable interrupts for TA0
+//        TA0CCTL1 &= ~CCIE;            // Disable interrupts for TA0
 //        IE2 &= ~UCA0TXIE;             // Disable transmit interrupt (LEDs)
 
-        playLED(arr[k]);              // Start playing our tone/note
-        TA0CCR0 = 0;                  // Set period as 0 (for safety)
-        TA0CCR0 = note_len;           // Set period to desired note length
+        playLED(arr[k]);                // Start playing our tone/note
+        P2DIR |= BIT1;                                // Make P2.1 an output pin (Piezo)
+        P2DIR |= BIT5;                                // Make P2.5 an output pin (Piezo)
+//        TA0CCR0 = 0;                  // Set period as 0 (for safety)
+//        TA0CCR0 = note_len;           // Set period to desired note length
+//
+//        TA0CCTL1 |= CCIE;             // Enable interrupts for TA0
 
-        TA0CCTL1 |= CCIE;             // Enable interrupts for TA0
-        __bis_SR_register(LPM0_bits + GIE); // Enter LPM0 until the TA0CCR0 runs out
-        P2OUT &= ~BIT1;               // Shut off P2.1 (Piezo PWM output)
+        if (press == 0) {               // If this call was the result of needing a sequence (not a button press)
+            __delay_cycles(500000);
+//            P2OUT &= ~BIT1;           // Shut off P2.1 (Piezo PWM output)
 
-        TA0CCTL1 &= ~CCIE;            // Disable interrupts for TA0
+            P2DIR &= ~BIT1;             // Disable Piezo (making it an input)
+            P2DIR &= ~BIT5;             // Disable Piezo (making it an input)
 
-        IE1 &= ~WDTIE;                // Disable WDT interrupt
+            TA0CCTL1 &= ~CCIE;          // Disable interrupts for TA0
+            IE1 &= ~WDTIE;              // Disable WDT interrupt
+
+        }
+        else {
+              //TODO
+        }
+//        __bis_SR_register(LPM0_bits + GIE); // Enter LPM0 until the TA0CCR0 runs out
+
+
+
+//        P2OUT &= ~BIT1;               // Shut off P2.1 (Piezo PWM output)
+//
+//        TA0CCTL1 &= ~CCIE;            // Disable interrupts for TA0
+//
+//        IE1 &= ~WDTIE;                // Disable WDT interrupt
+//
+
+
 //        IE2 &= ~UCA0TXIE;             // Disable transmit interrupt (LEDs)
     }
-    P2DIR &= ~BIT1;                   // Disable Piezo (making it an input)
-    P2DIR &= ~BIT5;                   // Disable Piezo (making it an input)
+//    P2DIR &= ~BIT1;                   // Disable Piezo (making it an input)
+//    P2DIR &= ~BIT5;                   // Disable Piezo (making it an input)
 }
 
 
@@ -230,21 +254,6 @@ void playSequence(int arr[], int n) {  // Accepts the array and size of the arra
 // CCIE 1 disabled --> disable interrupt again
 
 
-// TA0 interrupt service routine, used for controlling the duration of a note
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=TIMER0_A1_VECTOR
-__interrupt void Timer_A0 (void)
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer_A0 (void)
-#else
-#error Compiler not supported!
-#endif
-{
-    TA0CCTL1 &= ~CCIE;
-    __bic_SR_register_on_exit(LPM0_bits);
-//    __bic_SR_register_on_exit(LPM0_bits + GIE);  // On exit from the Timer A0 ISR, take the MSP430 out of low power mode 0, clear general interrupt
-}
-
 // TA1 interrupt service routine, used for controlling the frequency of a note
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=TIMER1_A1_VECTOR
@@ -255,10 +264,36 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) Timer_A1 (void)
 #error Compiler not supported!
 #endif
 {
-    TA1CCTL1 &= ~CCIE;
-    __bic_SR_register_on_exit(LPM0_bits);
+    if (debouncing == 1) {  // For when we are using TA1 as a freeze for button debouncing
+        P2IE  |= BIT0 + BIT2 + BIT3 + BIT4;      // Re-enable interrupt for P2.x
+        P2IFG &= ~(BIT0 + BIT2 + BIT3 + BIT4);   // Clear interrupt status flags for P2.x so it's ready for another button press (Safety)
+        debouncing = 0;
+        __bic_SR_register_on_exit(LPM0_bits);
+    }
+    else {                  // For the normal case where we are using TA1 to control note frequency
+        TA1CCTL1 &= ~CCIE;
+    }
+
+//    __bic_SR_register_on_exit(LPM0_bits);
 //    __bic_SR_register_on_exit(LPM0_bits + GIE);  // On exit from the Timer A1 ISR, take the MSP430 out of low power mode 0, clear general interrupt
 }
+
+// TA0 interrupt service routine, used for controlling the duration of a note
+//#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+//#pragma vector=TIMER0_A1_VECTOR
+//__interrupt void Timer_A0 (void)
+//#elif defined(__GNUC__)
+//void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer_A0 (void)
+//#else
+//#error Compiler not supported!
+//#endif
+//{
+//    TA0CCTL1 &= ~CCIE;
+//    __bic_SR_register_on_exit(LPM0_bits);
+////    __bic_SR_register_on_exit(LPM0_bits + GIE);  // On exit from the Timer A0 ISR, take the MSP430 out of low power mode 0, clear general interrupt
+//}
+
+
 
 //// USCI_A0 Data ISR
 //#pragma vector = USCIAB0TX_VECTOR
