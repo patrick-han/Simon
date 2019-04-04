@@ -14,8 +14,8 @@ unsigned int state = startUp;
 
 //unsigned int playerCanPress = 0; // Flag that indicates whether player input is allowed/valid (i.e. only during the valid 1-2 sec time window)
 
-int gameOverWin[] = {}; // TODO: Program this sequence
-int gameOverLose[] = {}; // TODO: Program this sequence
+int gameOverWin[] = {0,1,2,3,0,1,2,3,99}; // TODO: Program this sequence
+int gameOverLose[] = {3,2,1,0,3,2,1,0,99}; // TODO: Program this sequence
 int startSequence[] = {0,1,2,3,0,1,2,3,99}; // TODO: Program this sequence
 
 //int startSequence[] = {0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,99,
@@ -43,7 +43,7 @@ int main(void)
                 state = playGame;
                 break;
             case playGame:
-                gameStart();
+                state = gameStart();
                 break;
             case gameWon:
                 playSequence(gameOverWin, sizeof(gameOverWin)/sizeof(int) - 1, 0);

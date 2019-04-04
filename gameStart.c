@@ -12,46 +12,54 @@
 #include <gameStart.h>
 #include <global.h>
 
-#define M 4// The length of our gameSequence (INDEXED FROM 0), needs to be changed for different sequence sizes/difficulty
-int gameSequence[] = {0, 0, 0, 0, 0}; // length-M pattern (will be affected by the seed)
-
-int freeze_amt = 1000; // Number of cycles we will freeze for debouncing
-extern int debouncing;
-
+// Sequencing Variables
 int testSequence[] = {0,1,2,3,0,1,2,3,99};
 int seq0[] = {0};
 int seq1[] = {1};
 int seq2[] = {2};
 int seq3[] = {3};
 int seq99[] = {99};
+#define M 4// The length of our gameSequence (INDEXED FROM 0), needs to be changed for different sequence sizes/difficulty
+int gameSequence[] = {0, 0, 0, 0, 0}; // length-M pattern (will be affected/built-out by the seed)
+
+// Debouncing Variables
+int freeze_amt = 1000; // Number of cycles we will freeze for debouncing
+extern int debouncing;
 
 
+
+// Game logic variables
 int nextLED; // Next LED in our gameSequence
-int button; // WHich button was pressed?
-int test_flag;
+int button; // Which button was pressed?
 unsigned int start = 0; // Flag that is set when button is pressed to start game
-
 unsigned int n = 0; // Keeps track of what part of M we are on.
+int i; // Iterator variable
+
+// Timeout variables
+const long int timeout_limit = 1000000;
+int timeout_count = 0;
+extern int timeout; // flag
+
 
 int checkButton(void) {
     if (P2IFG & BIT0) { // If P2.0 button is pressed
 
-//        start = 1;
+        start = 1;
         return 0;
     }
     else if (P2IFG & BIT2) { // If P2.2 button is pressed
 
-//        start = 1;
+        start = 1;
         return 1;
     }
     else if (P2IFG & BIT3) { // If P2.3 button is pressed
 
-//        start = 1;
+        start = 1;
         return 2;
     }
     else if (P2IFG & BIT4) { // If P2.4 button is pressed
 
-//        start = 1;
+        start = 1;
         return 3;
     }
 }
@@ -64,40 +72,72 @@ int gameStart(void) {
 //    srand(ADC10MEM);            // Generate an initial random seed based on temperature sensor
     srand(640); // Placeholder for testing
     // disable_temperature_sensor();
-    if (start == 1) {                           // If a button has been pressed to start the game
-        playSequence(testSequence, 8, 0);
 
+    for (i = 0 ; i <= M ; i++) { // Build out the levels
+        nextLED = rand();
+        gameSequence[i] = nextLED;
+    }
 
-        while (n < M) {                         // While the player has not reached the game end
+    if (start == 1) {                            // If a button has been pressed to start the game
+        __delay_cycles(500000);
 
-            if (n == M) {                       // If the player has reached the game end
-                return 1;                       // Game as been won!
-            }
-            else {
-                nextLED = rand();               // Generate the next LED in our sequence
-                gameSequence[n] = nextLED;      // Add the new generated LED to the sequence
-                playSequence(gameSequence, n, 0);  // Play the current sequence partition (including the newly generated LED)
-            }
-
-            // TODO: start the watchdog/timer module countdown
-
-
-            // TODO: Button logic, (port interrupt)
-
-    // This code should go in watchdog timer stuff probably
-    //      if (/* TODO: Watchdog timer interrupt triggered */) { // If player waits too long to press the button;
-    //          playSequence(gameOverLose, sizeof(gameOverLose)/sizeof(int) - 1); // Play game over lose sequence
-    //          // TODO: player startup anim -> clear gameSequence?
-    //      }
-
-            n++; // Move on to the next LED in the random sequence
+        while (n <= M) {                         // While the player has not reached the game end
+            playSequence(gameSequence, n, 0);    // Play the current sequence partition (including the newly generated LED)
+            // while (wait for press & counter < timeout_limit) {
+            //    delay(10 microseconds)
+            //    counter++
+            // if (counter > timeout_limit)
+            //    fail
+            // else if (button = correct button)
+            //    win
+            // else
+            //    fail
+            // TODO: yeah this FAILS
+//            timeout = 1;
+//            while ((button > 3) & (timeout_count < timeout_limit)) {
+//                TA1CCR0 = 100;
+//                __bis_SR_register(LPM0_bits);        // Enter LPM0 for the timeout
+//                timeout_count++;
+//            }
+//
+//            if (timeout_count >= timeout_limit) {    // If we exceed the timeout, we lose
+//                return 4;
+//            }
+//            else if (button != gameSequence[n]) {    // If the player presses the wrong button
+//                return 4;
+//            }
+//            else if (button == gameSequence[n]) {    // If the player presses the right button
+//                n++;
+//            }
         }
     }
-//    start = 0;
+    // Reach here if n exceeds M (i.e. we pressed all the right buttons
+    return 3; // Game as been won!
+    // Reset game state
+    start = 0;
+    n = 0;
+    button = 99;
+    timeout_count = 0;
+    timeout = 0;
 }
 
+// Watchdog Timer interrupt service routine
+//#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
+//#pragma vector=WDT_VECTOR // Treat following code as part of the interrupt vector
+//__interrupt void watchdog_timer(void)
+//#elif defined(__GNUC__)
+//void __attribute__ ((interrupt(WDT_VECTOR))) watchdog_timer (void)
+//#else
+//#error Compiler not supported!
+//#endif
+//{
+//    if (timeout < timeout_limit) {
+//        timeout++;
+//    }
+//    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
+//}
 
-// TODO: This ISR
+
 
 /* BUTTON LAYOUT */
 /* (P2.4) S4 --------- S3 (P2.3) */
@@ -125,12 +165,12 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
 
     button = checkButton();                  // Get the button we pressed
     P2IFG &= ~(BIT0 + BIT2 + BIT3 + BIT4);   // Clear interrupt status flags for P2.x so it's ready for another button press
-    //setup sound pins
-    //setup LEDs
+
+    // Setup and play sound pins
+    // Setup and show LEDs
     if (button == 0) {
         playSequence(seq0, 0, 1);
         while(!(P2IN & BIT0));
-        test_flag = 123;
     }
     else if (button == 1) {
         playSequence(seq1, 0, 1);
@@ -152,6 +192,7 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
     TA1CCR0 = freeze_amt;                 // Set timer register for # of cycles to debounce for (freeze)
     debouncing = 1;                       // We are now debouncing...  (global flag)
     TA1CCTL1 |= CCIE;                     // Re-enable TA1 interrupt for the purpose of freeze time
+    button = 99;                          // Reset button to null state
     __bis_SR_register_on_exit(LPM0_bits); // Will freeze here until TA1 ISR is called and finished (ISR located in sequence.c)
 
 

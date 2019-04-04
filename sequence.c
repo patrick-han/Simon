@@ -54,6 +54,7 @@ unsigned int k; // for loop iterator for main sequence loop
 unsigned int z;
 
 extern int debouncing;
+extern int timeout;
 
 /*
  * LED's are daisy chained: 1 -> 2 -> 3 -> 4 (corresponding to respective buttons)
@@ -213,8 +214,8 @@ void playSequence(int arr[], int n, int press) {  // Accepts the array and size 
             P2DIR &= ~BIT1;             // Disable Piezo (making it an input)
             P2DIR &= ~BIT5;             // Disable Piezo (making it an input)
 
-            TA0CCTL1 &= ~CCIE;          // Disable interrupts for TA0
-            IE1 &= ~WDTIE;              // Disable WDT interrupt
+//            TA0CCTL1 &= ~CCIE;          // Disable interrupts for TA0
+//            IE1 &= ~WDTIE;              // Disable WDT interrupt
 
         }
         else {
@@ -270,6 +271,9 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) Timer_A1 (void)
         debouncing = 0;
         __bic_SR_register_on_exit(LPM0_bits);
     }
+    else if (timeout == 1) {
+        __bic_SR_register_on_exit(LPM0_bits);    // Exit when timeout timer runs out
+    }
     else {                  // For the normal case where we are using TA1 to control note frequency
         TA1CCTL1 &= ~CCIE;
     }
@@ -304,18 +308,6 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) Timer_A1 (void)
 ////    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM1 after ISR completes
 //}
 
-// Watchdog Timer interrupt service routine
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
-#pragma vector=WDT_VECTOR // Treat following code as part of the interrupt vector
-__interrupt void watchdog_timer(void)
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(WDT_VECTOR))) watchdog_timer (void)
-#else
-#error Compiler not supported!
-#endif
-{
-    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
-}
 
 
 
