@@ -37,8 +37,8 @@ int i; // Iterator variable
 int b; // Another iterator variable
 
 // Timeout variables
-const long int timeout_limit = 100;
-int timeout_count = 0;
+const long int timeout_limit = 125000;
+unsigned long int timeout_count = 0;
 extern int timeout; // flag
 
 void reset_game(void) { // Helper function that resets game variables
@@ -89,7 +89,7 @@ int gameStart(void) {
     }
 
     if (start == 1) {                            // If a button has been pressed to start the game
-        __delay_cycles(500000);
+        __delay_cycles(500000);                  // Just a small delay after starting the game with a button press
 
         while (n <= M) {                         // While the player has not reached the game end
             playSequence(gameSequence, n, 0);    // Play the current sequence partition (including the newly generated LED)
@@ -106,12 +106,9 @@ int gameStart(void) {
             timeout = 1;
             for (b = 0; b <= n; b++) { // For each button to check in the sequence
 
-
+                timeout_count = 0;
                 while ((button_pressed == 0) & (timeout_count < timeout_limit)) { // Waiting for the next button press
-    //                TA1CCR0 = 100;
-    //                TA1CCTL1 |= CCIE;                     // Re-enable TA1 interrupt for the purpose of freeze time
-    //                __bis_SR_register(LPM0_bits);        // Enter LPM0 for the timeout
-    //                timeout_count++;
+                    timeout_count++;
                 }
 
 
@@ -141,10 +138,9 @@ int gameStart(void) {
 
         }
     }
-    reset_game();
     // Reach here if n exceeds M (i.e. we pressed all the right buttons
-    return 3; // Game as been won!
-    // Reset game state
+    reset_game();
+    return 3; // Game won!
 
 }
 
@@ -225,11 +221,8 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
         button_pressed = 0;
     }
     __bis_SR_register_on_exit(LPM0_bits); // Will freeze here until TA1 ISR is called and finished (ISR located in sequence.c)
-
-
-//    P2IE  |= BIT0 + BIT2 + BIT3 + BIT4;    // Re-enable interrupt for P2.x
-//  __bic_SR_register_on_exit(LPM0_bits);  // On exit low power mode 0
-//  __bis_SR_register_on_exit(LPM0_bits + GIE); // On exit from being put to "sleep", enter low power mode 4 and re-enable interrupt
+    // TODO: Maybe a temporary fix for the button pressing delay before the sequence is played again
+    __delay_cycles(25000);
 }
 
 
