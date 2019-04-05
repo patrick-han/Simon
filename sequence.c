@@ -12,34 +12,14 @@
 // Sound frequencies for each LED, running on SMCLK = 1 MHz
 // --> ClockSpeed (Hz) / Desired Frequency (Hz)
 // Timer Capture/Control Register is 16-bits (65535 max value)
-// TODO!!!!!!!!!
-
-
 #define LED_0 2551 // G_4
 #define LED_1 2273 // A_4
 #define LED_2 1911 // C_5
 #define LED_3 1703 // D_5
 
-//#define LED_0 0
-//#define LED_1 0
-//#define LED_2 0
-//#define LED_3 0
-
 #define LED_99 0   // OFF
-//#define note_len 500000 // How long to play each note (0.5 seconds)
-#define note_len 62500 // ID_3 for the Timer clocks (divide by 8)
+//#define note_len 62500 // ID_3 for the Timer clocks (divide by 8)
 
-
-// TODO: define these
-//static int frame[] =    // frame contains LED colors corresponding to different buttons
-//{     //B     G     R
-//0x00, 0x00, 0x00, 0x00, // Start Frame
-//0xFF, 0x00, 0x00, 0x00, // LED 1
-//0xFF, 0x00, 0x00, 0x00,
-//0xFF, 0x00, 0x00, 0x00,
-//0xFF, 0x00, 0x00, 0x00,
-//0xFF, 0xFF, 0xFF, 0xFF  // End frame
-//};
 
 //                            B     G     R
 int LED_0_frame[4] = {0xFF, 0x00, 0x00, 0xFF};
@@ -72,7 +52,6 @@ extern int timeout;
 
 void sendStartFrame(void) { // Sends start frame bits for LED
     for (i = 0; i <= 3; i++) {
-//        __bis_SR_register(LPM0_bits + GIE);
         while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
             UCA0TXBUF = 0x00;
     }
@@ -80,23 +59,20 @@ void sendStartFrame(void) { // Sends start frame bits for LED
 
 void sendEndFrame(void) { // Sends end frame bits for LED
     for (i = 0; i <= 3; i++) {
-//        __bis_SR_register(LPM0_bits + GIE);
-        while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+        while(!(IFG2 & UCA0TXIFG));
             UCA0TXBUF = 0xFF;
     }
 }
 
-void sendOffFrame(void) {
+void sendOffFrame(void) { // Sends empty frame bits for LED (clears the LED)
     for (i = 0; i <= 3; i++) {
-//        __bis_SR_register(LPM0_bits + GIE);
-        while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+        while(!(IFG2 & UCA0TXIFG));
             UCA0TXBUF = off_frame[i];
     }
 }
 
-void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/buzzer value
-    // TODO: /LED lightup stuff etc.
-//    IE1 |= WDTIE;                                 // Enable WDT interrupt
+void playLED(int LED_n) {                         // Takes in a single integer corresponding to an LED/buzzer value
+//    IE1 |= WDTIE;                               // Enable WDT interrupt
 
 //    IE2 |= UCA0TXIE;                            // Enable transmit interrupt
 //    IFG2 &= ~UCA0TXIFG;                         // Clear interrupt status before transmitting anything
@@ -106,36 +82,28 @@ void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/b
         P2OUT |= BIT1;   // Start outputting sound from P2.1 (Piezo)
 
         // LED Code
-        //TODO idk if this is a good implementation
-
         sendStartFrame();
-//        while(1);
         for (i = 0; i <= 3; i++) { // Send Color Frame
-//            __bis_SR_register(LPM0_bits + GIE);
             while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
                 UCA0TXBUF = LED_0_frame[i];
         }
-        sendOffFrame(); // Other LEDs are off
+        sendOffFrame(); // Other LEDs are off, send empty "off" frames
         sendOffFrame();
         sendOffFrame();
-
         sendEndFrame();
     }
     else if (LED_n == 1) {
         TA1CCR0 = LED_1;
         P2OUT |= BIT1;
+
         sendStartFrame();
-
         sendOffFrame();
-
-        for (i = 0; i <= 3; i++) { // Send Color Frame
-//            __bis_SR_register(LPM0_bits + GIE);
-            while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+        for (i = 0; i <= 3; i++) {
+            while(!(IFG2 & UCA0TXIFG));
                 UCA0TXBUF = LED_1_frame[i];
         }
         sendOffFrame();
         sendOffFrame();
-
         sendEndFrame();
     }
     else if (LED_n == 2) {
@@ -143,55 +111,46 @@ void playLED(int LED_n) { // Takes in a single integer corresponding to an LED/b
         P2OUT |= BIT1;
 
         sendStartFrame();
-
         sendOffFrame();
         sendOffFrame();
-
-
-        for (i = 0; i <= 3; i++) { // Send Color Frame
-//            __bis_SR_register(LPM0_bits + GIE);
-            while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+        for (i = 0; i <= 3; i++) {
+            while(!(IFG2 & UCA0TXIFG));
                 UCA0TXBUF = LED_2_frame[i];
         }
         sendOffFrame();
-
         sendEndFrame();
     }
     else if (LED_n == 3) {
         TA1CCR0 = LED_3;
         P2OUT |= BIT1;
+
         sendStartFrame();
-
         sendOffFrame();
         sendOffFrame();
         sendOffFrame();
-
-
-        for (i = 0; i <= 3; i++) { // Send Color Frame
-//            __bis_SR_register(LPM0_bits + GIE);
-            while(!(IFG2 & UCA0TXIFG)); // Buffer ready?
+        for (i = 0; i <= 3; i++) {
+            while(!(IFG2 & UCA0TXIFG));
                 UCA0TXBUF = LED_3_frame[i];
         }
         sendEndFrame();
     }
-    else if (LED_n == 99) {
+    else if (LED_n == 99) { // For clearing the LEDs
         TA1CCR0 = LED_99;
         P2OUT &= ~BIT1;
+
         sendStartFrame();
-
         sendOffFrame();
         sendOffFrame();
         sendOffFrame();
         sendOffFrame();
-
         sendEndFrame();
     }
     TA1CCR1 = TA1CCR0 >> 2; // Maximize volume & minimize distortion with 50% duty cycle
-
 }
 
 void playSequence(int arr[], int n, int press) {  // Accepts the array and size of the array to be played (allows us to play partition) (n includes 0 index, so may need to subtract 1)
                                                   // Third argument 'press' is whether or not the playSequence() call is attributed to a button press or just a sequence
+
     P2DIR |= BIT1;                                // Make P2.1 an output pin (Piezo)
     P2DIR |= BIT5;                                // Make P2.5 an output pin (Piezo)
 
@@ -271,7 +230,7 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) Timer_A1 (void)
         debouncing = 0;
         __bic_SR_register_on_exit(LPM0_bits);
     }
-    else if (timeout == 3) {
+    else if (timeout == 3) { // TODO: JANK
         TA1CCTL1 &= ~CCIE;                       // Disable interrupts for TA1
         TA1CCTL1 |= CCIE;                     // Re-enable TA1 interrupt for the purpose of freeze time
         __bic_SR_register_on_exit(LPM0_bits);    // Exit when timeout timer runs out
@@ -279,9 +238,6 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) Timer_A1 (void)
     else {                  // For the normal case where we are using TA1 to control note frequency
         TA1CCTL1 &= ~CCIE;
     }
-
-//    __bic_SR_register_on_exit(LPM0_bits);
-//    __bic_SR_register_on_exit(LPM0_bits + GIE);  // On exit from the Timer A1 ISR, take the MSP430 out of low power mode 0, clear general interrupt
 }
 
 // TA0 interrupt service routine, used for controlling the duration of a note
@@ -298,18 +254,5 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) Timer_A1 (void)
 //    __bic_SR_register_on_exit(LPM0_bits);
 ////    __bic_SR_register_on_exit(LPM0_bits + GIE);  // On exit from the Timer A0 ISR, take the MSP430 out of low power mode 0, clear general interrupt
 //}
-
-
-
-//// USCI_A0 Data ISR
-//#pragma vector = USCIAB0TX_VECTOR
-//__interrupt void USCIA0TX_ISR(void)
-//{
-//    IFG2 &= ~UCA0TXIFG; // Clear interrupt status after byte is transmitted
-//    // So apparently, clearing LPM within this ISR doesn't work, in fact the WDT is doing the clearing
-////    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM1 after ISR completes
-//}
-
-
 
 

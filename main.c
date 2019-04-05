@@ -1,5 +1,4 @@
 #include <msp430.h> 
-// test push :D
 #include <sequence.h>
 #include <setup.h>
 #include <gameStart.h>
@@ -18,12 +17,6 @@ int gameOverWin[] = {0,1,2,3,0,1,2,3,99}; // TODO: Program this sequence
 int gameOverLose[] = {3,2,1,0,3,2,1,0,99}; // TODO: Program this sequence
 int startSequence[] = {0,1,2,3,0,1,2,3,99}; // TODO: Program this sequence
 
-//int startSequence[] = {0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,99,
-//                       0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,99};
-
-//#include <rand.h>
-//int test_rand;
-
 int main(void)
 {
 //    setup_temperature_sensor(); // Setup temperature sensor
@@ -36,14 +29,9 @@ int main(void)
 
     while(1)
     {
-//    __bis_SR_register(LPM0);
     switch (state)
         {
             case startUp:
-//                srand(731);
-//                while(1) {
-//                    test_rand = rand();
-//                }
                 playSequence(startSequence, sizeof(startSequence)/sizeof(int)-1, 0);
                 state = playGame;
                 break;
@@ -60,23 +48,6 @@ int main(void)
                 break;
         }
     }
-}
-
-
-
-
-
-// ADC interrupt service routine (For the temp sensor)
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
-#pragma vector=ADC10_VECTOR // Treat following code as part of the interrupt vector
-__interrupt void ADC10_ISR(void)
-#elif defined(__GNUC__)
-void __attribute__ ((interrupt(ADC10_VECTOR))) ADC10_ISR (void)
-#else
-#error Compiler not supported!
-#endif
-{
-    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
 }
 
 

@@ -12,19 +12,19 @@
 #include <gameStart.h>
 #include <global.h>
 
-// Sequencing Variables
-int testSequence[] = {0,1,2,3,0,1,2,3,99};
+// Sequencing related variables
 int seq0[] = {0};
 int seq1[] = {1};
 int seq2[] = {2};
 int seq3[] = {3};
 int seq99[] = {99};
+
 #define M 4// The length of our gameSequence (INDEXED FROM 0), needs to be changed for different sequence sizes/difficulty
 int gameSequence[] = {0, 0, 0, 0, 0}; // length-M pattern (will be affected/built-out by the seed)
 
 
 // Debouncing and Button Variables
-int freeze_amt = 1000; // Number of cycles we will freeze for debouncing
+const int freeze_amt = 1000; // Number of cycles we will freeze for debouncing
 extern int debouncing;
 int button_pressed = 0;
 
@@ -104,11 +104,11 @@ int gameStart(void) {
             //    fail
             // TODO: yeah this FAILS
             timeout = 1;
-            for (b = 0; b <= n; b++) { // For each button to check in the sequence
+            for (b = 0; b <= n; b++) { // For each button/stage to check in the level/sequence
 
-                timeout_count = 0;
+                timeout_count = 0; // Reset timer for each stage of the level to check
                 while ((button_pressed == 0) & (timeout_count < timeout_limit)) { // Waiting for the next button press
-                    timeout_count++;
+                    timeout_count++; // Iterate the timeout counter
                 }
 
 
@@ -143,6 +143,20 @@ int gameStart(void) {
     return 3; // Game won!
 
 }
+
+
+// ADC interrupt service routine (For the temp sensor)
+//#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
+//#pragma vector=ADC10_VECTOR // Treat following code as part of the interrupt vector
+//__interrupt void ADC10_ISR(void)
+//#elif defined(__GNUC__)
+//void __attribute__ ((interrupt(ADC10_VECTOR))) ADC10_ISR (void)
+//#else
+//#error Compiler not supported!
+//#endif
+//{
+//    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
+//}
 
 // Watchdog Timer interrupt service routine
 //#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
