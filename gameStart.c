@@ -22,11 +22,11 @@ int seq99[] = {99};
 #define M 4// The length of our gameSequence (INDEXED FROM 0), needs to be changed for different sequence sizes/difficulty
 int gameSequence[] = {0, 0, 0, 0, 0}; // length-M pattern (will be affected/built-out by the seed)
 
-// Debouncing Variables
+
+// Debouncing and Button Variables
 int freeze_amt = 1000; // Number of cycles we will freeze for debouncing
 extern int debouncing;
-
-
+int button_pressed = 0;
 
 // Game logic variables
 int nextLED; // Next LED in our gameSequence
@@ -34,11 +34,21 @@ int button; // Which button was pressed?
 unsigned int start = 0; // Flag that is set when button is pressed to start game
 unsigned int n = 0; // Keeps track of what part of M we are on.
 int i; // Iterator variable
+int b; // Another iterator variable
 
 // Timeout variables
-const long int timeout_limit = 1000000;
+const long int timeout_limit = 100;
 int timeout_count = 0;
 extern int timeout; // flag
+
+void reset_game(void) { // Helper function that resets game variables
+    start = 0;
+    n = 0;
+    button = 99;
+    button_pressed = 0;
+    timeout_count = 0;
+    timeout = 0;
+}
 
 
 int checkButton(void) {
@@ -70,7 +80,7 @@ int gameStart(void) {
     }
 
 //    srand(ADC10MEM);            // Generate an initial random seed based on temperature sensor
-    srand(640); // Placeholder for testing
+    srand(731); // Placeholder for testing
     // disable_temperature_sensor();
 
     for (i = 0 ; i <= M ; i++) { // Build out the levels
@@ -93,32 +103,49 @@ int gameStart(void) {
             // else
             //    fail
             // TODO: yeah this FAILS
-//            timeout = 1;
-//            while ((button > 3) & (timeout_count < timeout_limit)) {
-//                TA1CCR0 = 100;
-//                __bis_SR_register(LPM0_bits);        // Enter LPM0 for the timeout
-//                timeout_count++;
-//            }
-//
-//            if (timeout_count >= timeout_limit) {    // If we exceed the timeout, we lose
-//                return 4;
-//            }
-//            else if (button != gameSequence[n]) {    // If the player presses the wrong button
-//                return 4;
-//            }
-//            else if (button == gameSequence[n]) {    // If the player presses the right button
-//                n++;
-//            }
+            timeout = 1;
+            for (b = 0; b <= n; b++) { // For each button to check in the sequence
+
+
+                while ((button_pressed == 0) & (timeout_count < timeout_limit)) { // Waiting for the next button press
+    //                TA1CCR0 = 100;
+    //                TA1CCTL1 |= CCIE;                     // Re-enable TA1 interrupt for the purpose of freeze time
+    //                __bis_SR_register(LPM0_bits);        // Enter LPM0 for the timeout
+    //                timeout_count++;
+                }
+
+
+
+                if (timeout_count >= timeout_limit) {    // If we exceed the timeout, we lose
+                    reset_game();
+                    return 4; // Lose!
+                }
+                else if (button != gameSequence[b]) {    // If the player presses the wrong button
+                    button_pressed = 0;
+                    button = 99;
+                    reset_game();
+                    return 4; // Lose!
+                }
+                else if (button == gameSequence[b]) {    // If the player presses the right button
+                    button_pressed = 0;
+                    button = 99;
+                }
+
+
+
+
+            }
+            n++;
+
+
+
         }
     }
+    reset_game();
     // Reach here if n exceeds M (i.e. we pressed all the right buttons
     return 3; // Game as been won!
     // Reset game state
-    start = 0;
-    n = 0;
-    button = 99;
-    timeout_count = 0;
-    timeout = 0;
+
 }
 
 // Watchdog Timer interrupt service routine
@@ -157,6 +184,7 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
 #error Compiler not supported!
 #endif
 {
+    button_pressed = 1;
     P2IE  &= ~(BIT0 + BIT2 + BIT3 + BIT4);   // Disable interrupt for P2.x
     TA1CCTL1 &= ~CCIE;                       // Disable interrupts for TA1
 
@@ -192,7 +220,10 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
     TA1CCR0 = freeze_amt;                 // Set timer register for # of cycles to debounce for (freeze)
     debouncing = 1;                       // We are now debouncing...  (global flag)
     TA1CCTL1 |= CCIE;                     // Re-enable TA1 interrupt for the purpose of freeze time
-    button = 99;                          // Reset button to null state
+    if (timeout != 1) {
+        button = 99;
+        button_pressed = 0;
+    }
     __bis_SR_register_on_exit(LPM0_bits); // Will freeze here until TA1 ISR is called and finished (ISR located in sequence.c)
 
 

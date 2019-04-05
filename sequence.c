@@ -210,7 +210,7 @@ void playSequence(int arr[], int n, int press) {  // Accepts the array and size 
         if (press == 0) {               // If this call was the result of needing a sequence (not a button press)
             __delay_cycles(500000);
 //            P2OUT &= ~BIT1;           // Shut off P2.1 (Piezo PWM output)
-
+            playLED(99);
             P2DIR &= ~BIT1;             // Disable Piezo (making it an input)
             P2DIR &= ~BIT5;             // Disable Piezo (making it an input)
 
@@ -271,7 +271,9 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) Timer_A1 (void)
         debouncing = 0;
         __bic_SR_register_on_exit(LPM0_bits);
     }
-    else if (timeout == 1) {
+    else if (timeout == 3) {
+        TA1CCTL1 &= ~CCIE;                       // Disable interrupts for TA1
+        TA1CCTL1 |= CCIE;                     // Re-enable TA1 interrupt for the purpose of freeze time
         __bic_SR_register_on_exit(LPM0_bits);    // Exit when timeout timer runs out
     }
     else {                  // For the normal case where we are using TA1 to control note frequency

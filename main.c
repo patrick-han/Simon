@@ -21,6 +21,8 @@ int startSequence[] = {0,1,2,3,0,1,2,3,99}; // TODO: Program this sequence
 //int startSequence[] = {0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,99,
 //                       0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,99};
 
+//#include <rand.h>
+//int test_rand;
 
 int main(void)
 {
@@ -38,7 +40,10 @@ int main(void)
     switch (state)
         {
             case startUp:
-//                playSequence(startSequence, 8);
+//                srand(731);
+//                while(1) {
+//                    test_rand = rand();
+//                }
                 playSequence(startSequence, sizeof(startSequence)/sizeof(int)-1, 0);
                 state = playGame;
                 break;
