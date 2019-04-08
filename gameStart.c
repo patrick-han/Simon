@@ -104,16 +104,6 @@ int gameStart(void) {
 
         while (n <= M) {                         // While the player has not reached the game end
             playSequence(gameSequence, n, 0);    // Play the current sequence partition (including the newly generated LED)
-            // while (wait for press & counter < timeout_limit) {
-            //    delay(10 microseconds)
-            //    counter++
-            // if (counter > timeout_limit)
-            //    fail
-            // else if (button = correct button)
-            //    win
-            // else
-            //    fail
-            // TODO: yeah this FAILS
             timeout = 1;
             for (b = 0; b <= n; b++) { // For each button/stage to check in the level/sequence
 
@@ -121,7 +111,6 @@ int gameStart(void) {
                 while ((button_pressed == 0) & (timeout_count < timeout_limit)) { // Waiting for the next button press
                     timeout_count++; // Iterate the timeout counter
                 }
-
 
 
                 if (timeout_count >= timeout_limit) {    // If we exceed the timeout, we lose
@@ -167,22 +156,6 @@ void __attribute__ ((interrupt(ADC10_VECTOR))) ADC10_ISR (void)
 {
     __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
 }
-
-// Watchdog Timer interrupt service routine
-//#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
-//#pragma vector=WDT_VECTOR // Treat following code as part of the interrupt vector
-//__interrupt void watchdog_timer(void)
-//#elif defined(__GNUC__)
-//void __attribute__ ((interrupt(WDT_VECTOR))) watchdog_timer (void)
-//#else
-//#error Compiler not supported!
-//#endif
-//{
-//    if (timeout < timeout_limit) {
-//        timeout++;
-//    }
-//    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
-//}
 
 
 

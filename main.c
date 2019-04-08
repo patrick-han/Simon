@@ -34,18 +34,27 @@ int main(void)
     switch (state)
         {
             case startUp:
+                P2IE  &= ~(BIT0 + BIT2 + BIT3 + BIT4);   // Disable interrupt for P2.x (So no presses are allowed during the sequence)
                 playSequence(startSequence, sizeof(startSequence)/sizeof(int)-1, 0);
+                P2IE  |= BIT0 + BIT2 + BIT3 + BIT4;      // Re-enable interrupt for P2.x (Re-enable interrupts for input)
+
                 state = playGame;
                 break;
             case playGame:
                 state = gameStart();
                 break;
             case gameWon:
+                P2IE  &= ~(BIT0 + BIT2 + BIT3 + BIT4);
                 playSequence(gameOverWin, sizeof(gameOverWin)/sizeof(int) - 1, 0);
+                P2IE  |= BIT0 + BIT2 + BIT3 + BIT4;
+
                 state = startUp;
                 break;
             case gameLost:
+                P2IE  &= ~(BIT0 + BIT2 + BIT3 + BIT4);
                 playSequence(gameOverLose, sizeof(gameOverLose)/sizeof(int) - 1, 0);
+                P2IE  |= BIT0 + BIT2 + BIT3 + BIT4;
+
                 state = startUp;
                 break;
         }
