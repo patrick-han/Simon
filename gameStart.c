@@ -12,12 +12,15 @@
 #include <gameStart.h>
 #include <global.h>
 
+
+
 // Sequencing related variables
 int seq0[] = {0};
 int seq1[] = {1};
 int seq2[] = {2};
 int seq3[] = {3};
 int seq99[] = {99};
+int seq98[] = {98};
 
 #define M 4// The length of our gameSequence (INDEXED FROM 0), needs to be changed for different sequence sizes/difficulty
 int gameSequence[] = {0, 0, 0, 0, 0}; // length-M pattern (will be affected/built-out by the seed)
@@ -35,9 +38,10 @@ unsigned int start = 0; // Flag that is set when button is pressed to start game
 unsigned int n = 0; // Keeps track of what part of M we are on.
 int i; // Iterator variable
 int b; // Another iterator variable
+int random_seed; // Used for generating a random pattern
 
 // Timeout variables
-const long int timeout_limit = 125000;
+long int timeout_limit = 125000; // By default, Medium
 unsigned long int timeout_count = 0;
 extern int timeout; // flag
 
@@ -54,33 +58,40 @@ void reset_game(void) { // Helper function that resets game variables
 int checkButton(void) {
     if (P2IFG & BIT0) { // If P2.0 button is pressed
 
-        start = 1;
+//        start = 1;
         return 0;
     }
     else if (P2IFG & BIT2) { // If P2.2 button is pressed
 
-        start = 1;
+//        start = 1;
         return 1;
     }
     else if (P2IFG & BIT3) { // If P2.3 button is pressed
 
-        start = 1;
+//        start = 1;
         return 2;
     }
     else if (P2IFG & BIT4) { // If P2.4 button is pressed
 
-        start = 1;
+//        start = 1;
         return 3;
     }
 }
 
 
 int gameStart(void) {
+    start = 0;           // Ensure if the player accidentally hits some buttons during one of the game lost/win/startup sequences, it doesn't set the difficulty yet
     while (start == 0) { // Before we start the game, wait for a player to press a button to begin
-    }
 
-//    srand(ADC10MEM);            // Generate an initial random seed based on temperature sensor
-    srand(731); // Placeholder for testing
+        playSequence(seq98, 0, 0);
+    }
+    ADC10CTL0 |= ENC + ADC10SC;     // Start conversion
+    __bis_SR_register(LPM0_bits);
+    random_seed = ADC10MEM;
+    ADC10CTL0 &= ~ENC;
+
+    srand(random_seed);            // Generate an initial random seed based on temperature sensor
+//    srand(731); // Placeholder for testing
     // disable_temperature_sensor();
 
     for (i = 0 ; i <= M ; i++) { // Build out the levels
@@ -144,19 +155,18 @@ int gameStart(void) {
 
 }
 
-
-// ADC interrupt service routine (For the temp sensor)
-//#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
-//#pragma vector=ADC10_VECTOR // Treat following code as part of the interrupt vector
-//__interrupt void ADC10_ISR(void)
-//#elif defined(__GNUC__)
-//void __attribute__ ((interrupt(ADC10_VECTOR))) ADC10_ISR (void)
-//#else
-//#error Compiler not supported!
-//#endif
-//{
-//    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
-//}
+// ADC interrupt service routine
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
+#pragma vector=ADC10_VECTOR // Treat following code as part of the interrupt vector
+__interrupt void ADC10_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(ADC10_VECTOR))) ADC10_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+    __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0 after ISR completes
+}
 
 // Watchdog Timer interrupt service routine
 //#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__) // Pre-compilers checks for compiler compatibility
@@ -202,6 +212,24 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
     P2DIR &= ~BIT5;                          // Disable Piezo (making it an input)
 
     button = checkButton();                  // Get the button we pressed
+
+
+    if (start == 0) {                        // Difficulty selector code
+        if (button == 0) {                   // Easy
+            timeout_limit = 125000;
+        }
+        else if (button == 1) {              // Medium
+            timeout_limit = 70000;
+        }
+        else if (button == 2) {              // Hard
+            timeout_limit = 30000;
+        }
+        else if (button == 3) {              // Very Hard
+            timeout_limit = 10000;
+        }
+    }
+    start = 1;
+
     P2IFG &= ~(BIT0 + BIT2 + BIT3 + BIT4);   // Clear interrupt status flags for P2.x so it's ready for another button press
 
     // Setup and play sound pins

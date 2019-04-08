@@ -76,8 +76,6 @@ void setup_temperature_sensor(void) {
     ADC10AE0 |= BIT0;
     ADC10CTL0 |= REFON + SREF_1 + REF2_5V + ADC10SHT_3 + ADC10ON + ADC10IE;      // Reference on, select ref voltage, Sample and hold time, ADC10 ON, enable ADC interrupt enable,
     ADC10CTL1 |= ADC10DIV_0 + ADC10SSEL_3 + INCH_0;                              // Divide by 1, select SMCLK, Select temp sensor as channel
-
-    ADC10CTL0 |= ENC + ADC10SC;                                                  // Start conversion
 }
 
 void disable_temperature_sensor(void) {
@@ -90,6 +88,7 @@ void wdt_setup(void) {
     // TODO probably need to change this
     BCSCTL3 |= LFXT1S_2;                        // ACLK = VLO
     //    WDTCTL = WDT_ADLY_16;                       // WDT 16ms, ACLK
+
     WDTCTL = WDT_ADLY_1_9;
     IE1 &= ~WDTIE;                              // Disable WDT interrupt
 }

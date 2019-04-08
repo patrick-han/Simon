@@ -20,7 +20,7 @@
 #define LED_99 0   // OFF
 //#define note_len 62500 // ID_3 for the Timer clocks (divide by 8)
 
-
+// LED frames for normal play
 //                            B     G     R
 int LED_0_frame[4] = {0xFF, 0x00, 0x00, 0xFF};
 int LED_1_frame[4] = {0xFF, 0x00, 0xFF, 0x00};
@@ -35,6 +35,30 @@ unsigned int z;
 
 extern int debouncing;
 extern int timeout;
+
+
+
+
+// Difficulty-chooser frames
+//       B     G     R
+int difficulty_frame[] =
+{
+0x00, 0x00, 0x00, 0x00, // Start Frame
+0xFF, 0x00, 0xFF, 0x00, // Easy: Green
+0xFF, 0x00, 0xFF, 0xFF, // Medium: Yellow
+0xFF, 0x00, 0x00, 0xFF, // Hard: Red
+0xFF, 0xD3, 0x00, 0x94, // Very Hard: Purple
+0xFF, 0xFF, 0xFF, 0xFF  // End frame
+};
+
+
+
+
+//int easy_frame[4]      = {0xFF, 0x00, 0xFF, 0x00}; // Green
+//int medium_frame[4]    = {0xFF, 0x00, 0xFF, 0xFF}; // Yellow
+//int hard_frame[4]      = {0xFF, 0x00, 0xA5, 0xFF}; // Orange
+//int very_hard_frame[4] = {0xFF, 0x00, 0x00, 0xFF}; // Red
+
 
 /*
  * LED's are daisy chained: 1 -> 2 -> 3 -> 4 (corresponding to respective buttons)
@@ -135,7 +159,7 @@ void playLED(int LED_n) {                         // Takes in a single integer c
         sendEndFrame();
     }
     else if (LED_n == 99) { // For clearing the LEDs
-        TA1CCR0 = LED_99;
+        TA1CCR0 = LED_99; // No Sound
         P2OUT &= ~BIT1;
 
         sendStartFrame();
@@ -145,11 +169,20 @@ void playLED(int LED_n) {                         // Takes in a single integer c
         sendOffFrame();
         sendEndFrame();
     }
+    else if (LED_n == 98) { // Frame for showing the difficulty select
+        TA1CCR0 = LED_99; // No sound
+        P2OUT &= ~BIT1;
+
+        for (i = 0; i <= 23; i++) {
+            while(!(IFG2 & UCA0TXIFG));
+                UCA0TXBUF = difficulty_frame[i];
+        }
+    }
     TA1CCR1 = TA1CCR0 >> 2; // Maximize volume & minimize distortion with 50% duty cycle
 }
 
 void playSequence(int arr[], int n, int press) {  // Accepts the array and size of the array to be played (allows us to play partition) (n includes 0 index, so may need to subtract 1)
-                                                  // Third argument 'press' is whether or not the playSequence() call is attributed to a button press or just a sequence
+                                                  // Third argument 'press' is whether or not the playSequence() call is attributed to a button press (1) or just a sequence (0)
 
     P2DIR |= BIT1;                                // Make P2.1 an output pin (Piezo)
     P2DIR |= BIT5;                                // Make P2.5 an output pin (Piezo)

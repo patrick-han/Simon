@@ -15,7 +15,7 @@ unsigned int state = startUp;
 
 int gameOverWin[] = {0,1,2,3,0,1,2,3,99}; // TODO: Program this sequence
 int gameOverLose[] = {3,2,1,0,3,2,1,0,99}; // TODO: Program this sequence
-int startSequence[] = {0,1,2,3,0,1,2,3,99}; // TODO: Program this sequence
+int startSequence[] = {0,2,1,3,0,2,1,3,99}; // TODO: Program this sequence
 
 int main(void)
 {
@@ -23,8 +23,10 @@ int main(void)
     timer_setup();
     buzzer_setup();
     SPI_setup();
-    wdt_setup();
+//    wdt_setup();
+    wdt_disable();
     button_setup();
+    setup_temperature_sensor();
     __bis_SR_register(GIE);                   // Enable general interrupts
 
     while(1)
