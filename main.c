@@ -46,14 +46,14 @@ int main(void)
             case gameWon:
                 P2IE  &= ~(BIT0 + BIT2 + BIT3 + BIT4);
                 playSequence(gameOverWin, sizeof(gameOverWin)/sizeof(int) - 1, 0);
-                P2IE  |= BIT0 + BIT2 + BIT3 + BIT4;
+//                P2IE  |= BIT0 + BIT2 + BIT3 + BIT4;
 
                 state = startUp;
                 break;
             case gameLost:
                 P2IE  &= ~(BIT0 + BIT2 + BIT3 + BIT4);
                 playSequence(gameOverLose, sizeof(gameOverLose)/sizeof(int) - 1, 0);
-                P2IE  |= BIT0 + BIT2 + BIT3 + BIT4;
+//                P2IE  |= BIT0 + BIT2 + BIT3 + BIT4;
 
                 state = startUp;
                 break;

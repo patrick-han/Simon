@@ -19,10 +19,13 @@ int seq0[] = {0};
 int seq1[] = {1};
 int seq2[] = {2};
 int seq3[] = {3};
-int seq99[] = {99};
-int seq98[] = {98};
 
-#define M 4// The length of our gameSequence (INDEXED FROM 0), needs to be changed for different sequence sizes/difficulty
+int select_easy[]       = {100, 99, 100, 99, 100, 99, 100, 99, 100, 99, 100, 99};
+int select_medium[]     = {101, 99, 101, 99, 101, 99, 101, 99, 101, 99, 101, 99};
+int select_hard[]       = {102, 99, 102, 99, 102, 99, 102, 99, 102, 99, 102, 99};
+int select_very_hard[]  = {103, 99, 103, 99, 103, 99, 103, 99, 103, 99, 103, 99};
+
+#define M 4 // The length of our gameSequence (INDEXED FROM 0), needs to be changed for different sequence sizes/difficulty
 int gameSequence[] = {0, 0, 0, 0, 0}; // length-M pattern (will be affected/built-out by the seed)
 
 
@@ -32,16 +35,14 @@ extern int debouncing;
 int button_pressed = 0;
 
 // Game logic variables
-int nextLED; // Next LED in our gameSequence
 int button; // Which button was pressed?
 unsigned int start = 0; // Flag that is set when button is pressed to start game
 unsigned int n = 0; // Keeps track of what part of M we are on.
 int i; // Iterator variable
 int b; // Another iterator variable
-int random_seed; // Used for generating a random pattern
 
 // Timeout variables
-long int timeout_limit = 125000; // By default, Medium
+long int timeout_limit = 125000; // By default, Easy
 unsigned long int timeout_count = 0;
 extern int timeout; // flag
 
@@ -56,47 +57,38 @@ void reset_game(void) { // Helper function that resets game variables
 
 
 int checkButton(void) {
-    if (P2IFG & BIT0) { // If P2.0 button is pressed
-
-//        start = 1;
+    if (P2IFG & BIT0) {      // If P2.0 button is pressed
         return 0;
     }
     else if (P2IFG & BIT2) { // If P2.2 button is pressed
-
-//        start = 1;
         return 1;
     }
     else if (P2IFG & BIT3) { // If P2.3 button is pressed
-
-//        start = 1;
         return 2;
     }
     else if (P2IFG & BIT4) { // If P2.4 button is pressed
-
-//        start = 1;
         return 3;
     }
 }
 
 
 int gameStart(void) {
-    start = 0;           // Ensure if the player accidentally hits some buttons during one of the game lost/win/startup sequences, it doesn't set the difficulty yet
-    while (start == 0) { // Before we start the game, wait for a player to press a button to begin
+//    while ( !( !(P2IN & BIT0) && !(P2IN & BIT0) && !(P2IN & BIT0) && !(P2IN & BIT0) ) ) { // Reset functionality, while all 4 buttons are not pressed
 
-        playSequence(seq98, 0, 0);
+
+
+    start = 0;                      // Ensure if the player accidentally hits some buttons during one of the game lost/win/startup sequences, it doesn't set the difficulty yet
+    while (start == 0) {            // Before we start the game, wait for a player to press a button to begin
+//        playSequence(seq98, 0, 0);
+        playSequence((int[]){98}, 0 ,0); // Play LED_n = 98
     }
     ADC10CTL0 |= ENC + ADC10SC;     // Start conversion
     __bis_SR_register(LPM0_bits);
-    random_seed = ADC10MEM;
-    ADC10CTL0 &= ~ENC;
-
-    srand(random_seed);            // Generate an initial random seed based on temperature sensor
-//    srand(731); // Placeholder for testing
-    // disable_temperature_sensor();
+    srand(ADC10MEM);                // Init seed
+    ADC10CTL0 &= ~ENC;              // Disable Conversion
 
     for (i = 0 ; i <= M ; i++) { // Build out the levels
-        nextLED = rand();
-        gameSequence[i] = nextLED;
+        gameSequence[i] = rand();
     }
 
     if (start == 1) {                            // If a button has been pressed to start the game
@@ -127,20 +119,18 @@ int gameStart(void) {
                     button_pressed = 0;
                     button = 99;
                 }
-
-
-
-
             }
-            n++;
-
-
-
+            n++; // Move on to next level
         }
     }
     // Reach here if n exceeds M (i.e. we pressed all the right buttons
     reset_game();
     return 3; // Game won!
+
+
+//    }
+//    reset_game();
+//    return 1;
 
 }
 
@@ -190,15 +180,19 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
     if (start == 0) {                        // Difficulty selector code
         if (button == 0) {                   // Easy
             timeout_limit = 125000;
+            playSequence(select_easy, 11, -1);    // Play difficulty select animation
         }
         else if (button == 1) {              // Medium
             timeout_limit = 70000;
+            playSequence(select_medium, 11, -1);
         }
         else if (button == 2) {              // Hard
             timeout_limit = 30000;
+            playSequence(select_hard, 11, -1);
         }
         else if (button == 3) {              // Very Hard
             timeout_limit = 10000;
+            playSequence(select_very_hard, 11, -1);
         }
     }
     start = 1;

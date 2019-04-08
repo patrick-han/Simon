@@ -72,7 +72,6 @@ void SPI_setup(void) {
 
 void setup_temperature_sensor(void) {
     ADC10CTL0 &= ~ENC;                                                           // Disable ENC (Enable-Conversion) bit by default
-    // TODO: Verify these ports/clock selections are correct!!!
     ADC10AE0 |= BIT0;
     ADC10CTL0 |= REFON + SREF_1 + REF2_5V + ADC10SHT_3 + ADC10ON + ADC10IE;      // Reference on, select ref voltage, Sample and hold time, ADC10 ON, enable ADC interrupt enable,
     ADC10CTL1 |= ADC10DIV_0 + ADC10SSEL_3 + INCH_0;                              // Divide by 1, select SMCLK, Select temp sensor as channel

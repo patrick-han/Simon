@@ -25,7 +25,7 @@
 int LED_0_frame[4] = {0xFF, 0x00, 0x00, 0xFF};
 int LED_1_frame[4] = {0xFF, 0x00, 0xFF, 0x00};
 int LED_2_frame[4] = {0xFF, 0xFF, 0x00, 0x00};
-int LED_3_frame[4] = {0xFF, 0x42, 0xF1, 0xF4}; // Yellow
+int LED_3_frame[4] = {0xFF, 0x00, 0xA3, 0xFF}; // Orange
 
 int off_frame[4] = {0xFF, 0x00, 0x00, 0x00};
 
@@ -50,14 +50,6 @@ int difficulty_frame[] =
 0xFF, 0xD3, 0x00, 0x94, // Very Hard: Purple
 0xFF, 0xFF, 0xFF, 0xFF  // End frame
 };
-
-
-
-
-//int easy_frame[4]      = {0xFF, 0x00, 0xFF, 0x00}; // Green
-//int medium_frame[4]    = {0xFF, 0x00, 0xFF, 0xFF}; // Yellow
-//int hard_frame[4]      = {0xFF, 0x00, 0xA5, 0xFF}; // Orange
-//int very_hard_frame[4] = {0xFF, 0x00, 0x00, 0xFF}; // Red
 
 
 /*
@@ -178,11 +170,68 @@ void playLED(int LED_n) {                         // Takes in a single integer c
                 UCA0TXBUF = difficulty_frame[i];
         }
     }
+    else if (LED_n == 100) { // Play difficulty select EASY
+        TA1CCR0 = LED_99; // No sound
+        P2OUT &= ~BIT1;
+
+        sendStartFrame();
+        for (i = 4; i <= 7; i++) {
+            while(!(IFG2 & UCA0TXIFG));
+                UCA0TXBUF = difficulty_frame[i];
+        }
+        sendOffFrame();
+        sendOffFrame();
+        sendOffFrame();
+        sendEndFrame();
+    }
+    else if (LED_n == 101) { // Play difficulty select MEDIUM
+        TA1CCR0 = LED_99; // No sound
+        P2OUT &= ~BIT1;
+
+        sendStartFrame();
+        sendOffFrame();
+        for (i = 8; i <= 11; i++) {
+            while(!(IFG2 & UCA0TXIFG));
+                UCA0TXBUF = difficulty_frame[i];
+        }
+        sendOffFrame();
+        sendOffFrame();
+        sendEndFrame();
+    }
+    else if (LED_n == 102) { // Play difficulty select HARD
+        TA1CCR0 = LED_99; // No sound
+        P2OUT &= ~BIT1;
+
+        sendStartFrame();
+        sendOffFrame();
+        sendOffFrame();
+        for (i = 12; i <= 15; i++) {
+            while(!(IFG2 & UCA0TXIFG));
+                UCA0TXBUF = difficulty_frame[i];
+        }
+        sendOffFrame();
+        sendEndFrame();
+    }
+    else if (LED_n == 103) { // Play difficulty select VERY HARD
+        TA1CCR0 = LED_99; // No sound
+        P2OUT &= ~BIT1;
+
+        sendStartFrame();
+        sendOffFrame();
+        sendOffFrame();
+        sendOffFrame();
+        for (i = 16; i <= 19; i++) {
+            while(!(IFG2 & UCA0TXIFG));
+                UCA0TXBUF = difficulty_frame[i];
+        }
+        sendEndFrame();
+    }
     TA1CCR1 = TA1CCR0 >> 2; // Maximize volume & minimize distortion with 50% duty cycle
 }
 
 void playSequence(int arr[], int n, int press) {  // Accepts the array and size of the array to be played (allows us to play partition) (n includes 0 index, so may need to subtract 1)
                                                   // Third argument 'press' is whether or not the playSequence() call is attributed to a button press (1) or just a sequence (0)
+                                                  // or a sequence involving the difficulty select (-1)
 
     P2DIR |= BIT1;                                // Make P2.1 an output pin (Piezo)
     P2DIR |= BIT5;                                // Make P2.5 an output pin (Piezo)
@@ -210,8 +259,12 @@ void playSequence(int arr[], int n, int press) {  // Accepts the array and size 
 //            IE1 &= ~WDTIE;              // Disable WDT interrupt
 
         }
-        else {
-              //TODO
+        else if (press == -1) {
+            __delay_cycles(100000);
+//            P2OUT &= ~BIT1;           // Shut off P2.1 (Piezo PWM output)
+            playLED(99);
+            P2DIR &= ~BIT1;             // Disable Piezo (making it an input)
+            P2DIR &= ~BIT5;             // Disable Piezo (making it an input)
         }
 //        __bis_SR_register(LPM0_bits + GIE); // Enter LPM0 until the TA0CCR0 runs out
 
