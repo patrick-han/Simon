@@ -11,19 +11,15 @@
 
 unsigned int state = startUp;
 
-//unsigned int playerCanPress = 0; // Flag that indicates whether player input is allowed/valid (i.e. only during the valid 1-2 sec time window)
-
 int gameOverWin[] = {0,1,2,3,0,1,2,3,99}; // TODO: Program this sequence
 int gameOverLose[] = {3,2,1,0,3,2,1,0,99}; // TODO: Program this sequence
 int startSequence[] = {0,2,1,3,0,2,1,3,99}; // TODO: Program this sequence
 
 int main(void)
 {
-//    setup_temperature_sensor(); // Setup temperature sensor
     timer_setup();
     buzzer_setup();
     SPI_setup();
-//    wdt_setup();
     wdt_disable();
     button_setup();
     setup_temperature_sensor();
@@ -37,7 +33,6 @@ int main(void)
                 P2IE  &= ~(BIT0 + BIT2 + BIT3 + BIT4);   // Disable interrupt for P2.x (So no presses are allowed during the sequence)
                 playSequence(startSequence, sizeof(startSequence)/sizeof(int)-1, 0);
                 P2IE  |= BIT0 + BIT2 + BIT3 + BIT4;      // Re-enable interrupt for P2.x (Re-enable interrupts for input)
-
                 state = playGame;
                 break;
             case playGame:

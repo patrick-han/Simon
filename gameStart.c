@@ -73,13 +73,9 @@ int checkButton(void) {
 
 
 int gameStart(void) {
-//    while ( !( !(P2IN & BIT0) && !(P2IN & BIT0) && !(P2IN & BIT0) && !(P2IN & BIT0) ) ) { // Reset functionality, while all 4 buttons are not pressed
-
-
 
     start = 0;                      // Ensure if the player accidentally hits some buttons during one of the game lost/win/startup sequences, it doesn't set the difficulty yet
     while (start == 0) {            // Before we start the game, wait for a player to press a button to begin
-//        playSequence(seq98, 0, 0);
         playSequence((int[]){98}, 0 ,0); // Play LED_n = 98
     }
     ADC10CTL0 |= ENC + ADC10SC;     // Start conversion
@@ -126,11 +122,6 @@ int gameStart(void) {
     // Reach here if n exceeds M (i.e. we pressed all the right buttons
     reset_game();
     return 3; // Game won!
-
-
-//    }
-//    reset_game();
-//    return 1;
 
 }
 

@@ -237,26 +237,16 @@ void playSequence(int arr[], int n, int press) {  // Accepts the array and size 
     P2DIR |= BIT5;                                // Make P2.5 an output pin (Piezo)
 
     for (k = 0; k <= n; k++) {
-//        TA0CCTL1 &= ~CCIE;            // Disable interrupts for TA0
-//        IE2 &= ~UCA0TXIE;             // Disable transmit interrupt (LEDs)
 
         playLED(arr[k]);                // Start playing our tone/note
         P2DIR |= BIT1;                                // Make P2.1 an output pin (Piezo)
         P2DIR |= BIT5;                                // Make P2.5 an output pin (Piezo)
-//        TA0CCR0 = 0;                  // Set period as 0 (for safety)
-//        TA0CCR0 = note_len;           // Set period to desired note length
-//
-//        TA0CCTL1 |= CCIE;             // Enable interrupts for TA0
 
         if (press == 0) {               // If this call was the result of needing a sequence (not a button press)
             __delay_cycles(500000);
-//            P2OUT &= ~BIT1;           // Shut off P2.1 (Piezo PWM output)
             playLED(99);
             P2DIR &= ~BIT1;             // Disable Piezo (making it an input)
             P2DIR &= ~BIT5;             // Disable Piezo (making it an input)
-
-//            TA0CCTL1 &= ~CCIE;          // Disable interrupts for TA0
-//            IE1 &= ~WDTIE;              // Disable WDT interrupt
 
         }
         else if (press == -1) {
@@ -266,19 +256,6 @@ void playSequence(int arr[], int n, int press) {  // Accepts the array and size 
             P2DIR &= ~BIT1;             // Disable Piezo (making it an input)
             P2DIR &= ~BIT5;             // Disable Piezo (making it an input)
         }
-//        __bis_SR_register(LPM0_bits + GIE); // Enter LPM0 until the TA0CCR0 runs out
-
-
-
-//        P2OUT &= ~BIT1;               // Shut off P2.1 (Piezo PWM output)
-//
-//        TA0CCTL1 &= ~CCIE;            // Disable interrupts for TA0
-//
-//        IE1 &= ~WDTIE;                // Disable WDT interrupt
-//
-
-
-//        IE2 &= ~UCA0TXIE;             // Disable transmit interrupt (LEDs)
     }
 //    P2DIR &= ~BIT1;                   // Disable Piezo (making it an input)
 //    P2DIR &= ~BIT5;                   // Disable Piezo (making it an input)
