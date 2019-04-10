@@ -88,10 +88,6 @@ void sendOffFrame(void) { // Sends empty frame bits for LED (clears the LED)
 }
 
 void playLED(int LED_n) {                         // Takes in a single integer corresponding to an LED/buzzer value
-//    IE1 |= WDTIE;                               // Enable WDT interrupt
-
-//    IE2 |= UCA0TXIE;                            // Enable transmit interrupt
-//    IFG2 &= ~UCA0TXIFG;                         // Clear interrupt status before transmitting anything
     if (LED_n == 0) {
         // Buzzer Code
         TA1CCR0 = LED_0; // TA1 controls the frequency of our note
@@ -302,20 +298,4 @@ void __attribute__ ((interrupt(TIMER1_A1_VECTOR))) Timer_A1 (void)
         TA1CCTL1 &= ~CCIE;
     }
 }
-
-// TA0 interrupt service routine, used for controlling the duration of a note
-//#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-//#pragma vector=TIMER0_A1_VECTOR
-//__interrupt void Timer_A0 (void)
-//#elif defined(__GNUC__)
-//void __attribute__ ((interrupt(TIMER0_A1_VECTOR))) Timer_A0 (void)
-//#else
-//#error Compiler not supported!
-//#endif
-//{
-//    TA0CCTL1 &= ~CCIE;
-//    __bic_SR_register_on_exit(LPM0_bits);
-////    __bic_SR_register_on_exit(LPM0_bits + GIE);  // On exit from the Timer A0 ISR, take the MSP430 out of low power mode 0, clear general interrupt
-//}
-
 

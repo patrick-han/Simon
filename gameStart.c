@@ -221,7 +221,7 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2 (void)
         button_pressed = 0;
     }
     __bis_SR_register_on_exit(LPM0_bits); // Will freeze here until TA1 ISR is called and finished (ISR located in sequence.c)
-    // TODO: Maybe a temporary fix for the button pressing delay before the sequence is played again
+    // fix for the button pressing delay before the sequence is played again
     __delay_cycles(25000);
 }
 

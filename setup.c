@@ -41,10 +41,10 @@ void buzzer_setup(void) {
 
 void timer_setup(void) {
     // TA0
-    TA0CCTL1 &= ~CCIE;                            // Disable interrupts for TA0
-    TA0CCTL1 |= OUTMOD_7;                         // Governs the high/low behavior related to CCR0, CCR1
-    TA0CTL = TASSEL_2 + MC_1;                     // Select SMCLK as source clock, up count mode
-    TA0CCR0 = 0;
+//    TA0CCTL1 &= ~CCIE;                            // Disable interrupts for TA0
+//    TA0CCTL1 |= OUTMOD_7;                         // Governs the high/low behavior related to CCR0, CCR1
+//    TA0CTL = TASSEL_2 + MC_1;                     // Select SMCLK as source clock, up count mode
+//    TA0CCR0 = 0;
 
     // TA1
     TA1CCTL1 &= ~CCIE;                            // Disable interrupts for TA1
@@ -79,17 +79,6 @@ void setup_temperature_sensor(void) {
 
 void disable_temperature_sensor(void) {
     ADC10CTL0 &= ~ENC;                        // Disable ENC (Enable-Conversion) bit
-}
-
-
-void wdt_setup(void) {
-
-    // TODO probably need to change this
-    BCSCTL3 |= LFXT1S_2;                        // ACLK = VLO
-    //    WDTCTL = WDT_ADLY_16;                       // WDT 16ms, ACLK
-
-    WDTCTL = WDT_ADLY_1_9;
-    IE1 &= ~WDTIE;                              // Disable WDT interrupt
 }
 
 
